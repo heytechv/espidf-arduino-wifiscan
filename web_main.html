@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.1.slim.min.js" integrity="sha256-w8CvhFs7iHNVUtnSP0YKEg00p9Ih13rlL9zGqvLdePA=" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <div class="m">
+        <div class="t">PixelClock
+            <div class="d">Only first 5 screens are taken.</div>
+        </div>
+        <div id="list" >
+
+            <!-- Screens start -->
+            <!-- <div class="i">
+                <div class="screen">
+                    <div class="info">
+                        <span class="n">Time</span>
+                        <span class="d">Shows current time and icon/animation.</span>
+                        <span ></span>
+
+                    </div>                    
+                </div>
+            </div> -->
+            
+            <!-- Screens end -->
+
+        </div>
+        <div style="position:absolute; bottom: 0; left:50%; transform: translate(-50%, -50%); margin: auto;"><input type='submit' value='Apply' class='apply'></input></div>
+    </div>
+
+    <dialog id="dialog">
+        <form id="dform" action="/config" method="post">
+
+        </form>
+    </dialog>
+
+    <script>
+        var screensJson = {
+            "Time": [
+                [
+                    1,              // fieldType [TEXT, GRAPHIC]
+                    "Graphics",     // fieldName
+                    "Choose graphic visible next to time."   // description
+                ],
+                [
+                    0,              // fieldType [TEXT, GRAPHIC]
+                    "Timezone",     // fieldName
+                    "Fill in timezone."   // description
+                ]
+            ],
+            "Weather": [
+                [
+                    1,              // fieldType [TEXT, GRAPHIC]
+                    "Graphics",     // fieldName
+                    "Choose graphic visible next to time."   // description
+                ],
+                [
+                    1,              // fieldType [TEXT, GRAPHIC]
+                    "Graphics2",     // fieldName
+                    "2Choose graphic visible next to time."   // description
+                ],
+                [
+                    0,              // fieldType [TEXT, GRAPHIC]
+                    "Timezone",     // fieldName
+                    "Fill in timezone."   // description
+                ]
+            ]
+        };
+
+        var files = ["skull.anim", "skull_0.bmp", "skull_1.bmp"];
+
+        function getGraphicFiles() {
+            let list = [];
+            for (let f in files) {
+                let filename = files[f];
+                if (filename.endsWith(".bmp") || filename.endsWith(".anim")) list.push(filename);
+            }
+            return list;
+        }
+
+        window.onload = function() {
+            let list = document.getElementById("list");
+
+            let html = "";
+            for (let screen in screensJson) {
+                html += "<div class='i' onclick='showInputDialog(\"" + screen + "\");'><div class='screen'><div class='info'><span class='n'>"+screen+"</span><span class='d'>Opis mial byc ale sie rozjebalem</span></div></div></div>";
+            }
+
+            list.innerHTML = html;
+            new Sortable(document.getElementById('list'));
+        };
+
+
+        function showInputDialog(screenName) {
+            console.log(screensJson[screenName]);
+
+            let dform = document.getElementById("dform");
+            dform.replaceChildren();
+
+            let inputs = document.createElement('div');
+            inputs.setAttribute('id', 'dialog_cont');
+
+            let html = "";
+
+            for (let input in screensJson[screenName]) {
+
+                let type = screensJson[screenName][input][0];
+                let name = screensJson[screenName][input][1];
+                let desc = screensJson[screenName][input][2];
+
+                html += "<div class='n'>"+name+"</div>";
+                html += "<div class='d'>"+desc+"</div>";
+
+                if (type == 0) {
+                    html += "<input type='text' name='"+name+"' class='in' />";
+                } else if (type == 1) {
+                    let fileList = getGraphicFiles();
+
+                    html += "<select name='"+name+"' class='in'>";
+                    for (f in fileList) {
+                        let filename = fileList[f];
+                        html += "<option value='" + filename + "'>" + filename + "</option>";
+                    }
+                    html += "</select>";
+                }
+            }
+
+            html += "<br/><input type='submit' value='Apply' class='apply'></input>";
+            inputs.innerHTML = html;
+
+            dform.appendChild(inputs);
+
+            dialog.showModal();
+        }
+
+        document.onclick = function(event) {
+            if (!event.target.contains(dialog)) return;
+            dialog.close();
+        }
+
+    </script>
+
+
+    <style>
+
+        body { font-family: 'Roboto', sans-serif; }
+
+        .m { padding: 12px; }
+        .t { font-size: 24px; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 2px solid #E8E7EA;}
+        .n { font-size: 16px; }
+        .d { font-size: 12px; }
+
+        .i:before {
+            content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='18' width='24'%3E%3Cpath style='stroke:%23d9d9d9;stroke-width:3' d='M0 3h24M0 9h24M0 15h24'/%3E%3C/svg%3E");
+        }
+
+        .i {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .screen {
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            gap: 2px;
+
+            border: 2px solid #E8E7EA;
+            border-radius: 10px;
+            padding: 18px 12px;
+
+            margin-top: 12px;
+        }
+
+        .screen:after {
+            transform: scale(1.75);
+            content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-arrow-right-short'%3E%3Cpath fill-rule='evenodd' d='M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z'/%3E%3C/svg%3E");
+        }
+
+        .info {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+        }
+        
+
+        dialog {
+            width: 88%;
+            margin-bottom: 2%;
+            border: 2px solid #E8E7EA;
+            border-radius: 10px;
+
+
+        }
+
+        #dialog_cont {
+            width: 90%;
+            margin: auto;
+            margin-top: 12px;
+        }
+
+        .in {
+            margin-top: 8px;
+            margin-bottom: 12px;
+            width: 100%;
+            padding: 12px 12px;
+            box-sizing: border-box;
+            background-color: #f1f1f1;
+            color: black;
+            border-radius: 30px;
+            border: none;
+        }
+
+        .apply {
+            width: 100%;
+            background: #0C1617;
+            border-radius: 30px;
+            padding: 6px 50px;
+            font-size: 18px;
+            color: #FFFFFF;
+            margin-top: 12px;
+        }
+
+
+    </style>
+
+</body>
+</html>
+
