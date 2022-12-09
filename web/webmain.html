@@ -4,7 +4,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="UTF-8">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.1.slim.min.js" integrity="sha256-w8CvhFs7iHNVUtnSP0YKEg00p9Ih13rlL9zGqvLdePA=" crossorigin="anonymous"></script>
+    <script
+  src="https://code.jquery.com/jquery-3.6.1.min.js"
+  integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ="
+  crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -33,7 +36,7 @@
     </div>
 
     <dialog id="dialog">
-        <form id="dform" action="/config" method="post">
+        <form id="dform" >
 
         </form>
     </dialog>
@@ -83,6 +86,9 @@
         }
 
         window.onload = function() {
+            screensJson = getScreensJson();
+            files = getFiles();
+
             let list = document.getElementById("list");
 
             let html = "";
@@ -93,6 +99,33 @@
             list.innerHTML = html;
             new Sortable(document.getElementById('list'));
         };
+
+        
+        function getScreensJson() {
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open( "GET", "/api/screens", false ); // false for synchronous request
+            xmlHttp.send( null );
+
+            var resp = xmlHttp.responseText;
+            console.log("Screens: "+resp);
+
+            return JSON.parse(resp);
+        }
+
+        function getFiles() {
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open( "GET", "/api/files", false ); // false for synchronous request
+            xmlHttp.send( null );
+
+            var resp = xmlHttp.responseText;
+            console.log("Files: "+resp);
+
+            var files = resp.split(",");
+            files = files.filter(n => n);
+            return files;
+        }
+
+
 
 
         function showInputDialog(screenName) {
@@ -105,6 +138,8 @@
             inputs.setAttribute('id', 'dialog_cont');
 
             let html = "";
+
+            html += "<input type='hidden' name='ScreenName' value='" + screenName + "'></input>";
 
             for (let input in screensJson[screenName]) {
 
@@ -128,18 +163,34 @@
                     html += "</select>";
                 }
             }
-
-            html += "<br/><input type='submit' value='Apply' class='apply'></input>";
+            html += "<br/><input type='button' value='Apply' onclick='sendScreenConfig()' class='apply'></input>";
             inputs.innerHTML = html;
-
             dform.appendChild(inputs);
-
             dialog.showModal();
         }
 
         document.onclick = function(event) {
             if (!event.target.contains(dialog)) return;
             dialog.close();
+        }
+
+
+        function sendScreenConfig() {
+            var formData = $("#dform").serializeArray();
+            var resultJson = [];
+            for (let d in formData) {
+                let value = formData[d]['value'];
+                resultJson[d] = value;
+            }
+            console.log("Sending json:"+resultJson);
+            $.ajax({
+                type: "POST",
+                url: "http://192.168.1.107/api/screen",
+                data: JSON.stringify(resultJson),
+                success: function(){},
+                dataType: "json",
+                contentType : "application/json"
+            });
         }
 
     </script>

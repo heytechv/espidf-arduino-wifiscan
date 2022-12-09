@@ -52,3 +52,4 @@ idf_component_register(SRCS
 
 )
 
+target_add_binary_data(${COMPONENT_TARGET} "web/webmain.html" TEXT)

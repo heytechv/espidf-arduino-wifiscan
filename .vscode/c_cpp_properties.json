@@ -160,6 +160,7 @@
                 "/home/michal/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
                 "/home/michal/.platformio/packages/framework-arduinoespressif32/libraries/WiFiProv/src",
                 "/home/michal/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src",
+                "/home/michal/Dokumenty/PlatformIO/Projects/espidf-arduino-wifiscan/.pio/libdeps/esp32dev/SmartLeds/src",
                 "/home/michal/Dokumenty/PlatformIO/Projects/espidf-arduino-wifiscan/.pio/libdeps/esp32dev/Unity/src",
                 ""
             ],
@@ -318,6 +319,7 @@
                     "/home/michal/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
                     "/home/michal/.platformio/packages/framework-arduinoespressif32/libraries/WiFiProv/src",
                     "/home/michal/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src",
+                    "/home/michal/Dokumenty/PlatformIO/Projects/espidf-arduino-wifiscan/.pio/libdeps/esp32dev/SmartLeds/src",
                     "/home/michal/Dokumenty/PlatformIO/Projects/espidf-arduino-wifiscan/.pio/libdeps/esp32dev/Unity/src",
                     ""
                 ]

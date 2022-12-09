@@ -58,6 +58,10 @@
         "thread": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "bitset": "cpp",
+        "regex": "cpp",
+        "iostream": "cpp",
+        "variant": "cpp"
     }
 }

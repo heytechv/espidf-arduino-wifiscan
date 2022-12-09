@@ -235,7 +235,8 @@ std::string screensManager_get_config_json_str() {
         screen_name = sc->screen->getName();
         conf_size = sc->conf.size();
 
-        cJSON_AddItemToObject(jsonRoot, screen_name.c_str(), jsonScreen=cJSON_CreateObject());
+        jsonScreen = cJSON_AddArrayToObject(jsonRoot, screen_name.c_str());
+
 
         /* Iterate over conf list of screen */
         for (int n=0; n<conf_size; n++) {
@@ -261,6 +262,33 @@ std::string screensManager_get_config_json_str() {
             cJSON_AddItemToArray(jsonConfArray, element);
         }
     }
+
+    //     cJSON_AddItemToObject(jsonRoot, screen_name.c_str(), jsonScreen=cJSON_CreateObject());
+
+    //     /* Iterate over conf list of screen */
+    //     for (int n=0; n<conf_size; n++) {
+    //         fieldName = sc->conf.at(n).fieldName;
+
+    //         fieldType = sc->conf.at(n).fieldType;
+    //         title = sc->conf.at(n).title;
+    //         description = sc->conf.at(n).description;
+    //         value = sc->conf.at(n).value;
+
+    //         jsonConfArray = cJSON_AddArrayToObject(jsonScreen, fieldName.c_str());
+
+    //         element = cJSON_CreateNumber(fieldType);
+    //         cJSON_AddItemToArray(jsonConfArray, element);
+
+    //         element = cJSON_CreateString(title.c_str());
+    //         cJSON_AddItemToArray(jsonConfArray, element);
+            
+    //         element = cJSON_CreateString(description.c_str());
+    //         cJSON_AddItemToArray(jsonConfArray, element);
+
+    //         element = cJSON_CreateString(value.c_str());
+    //         cJSON_AddItemToArray(jsonConfArray, element);
+    //     }
+    // }
 
     /* Parse to string */
     char *res = cJSON_PrintUnformatted(jsonRoot);

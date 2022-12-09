@@ -32,10 +32,25 @@
 
 #include "screens/ScreensManager.h"
 #include "EasyButton/EasyButton.h"
+#include "esp_spiffs.h"
+
+#include <sys/param.h>
+#include <sys/unistd.h>
+#include <sys/stat.h>
+#include <dirent.h>
+
+#include "display/ws2812b/ws2812b.h"
+
 
 #define INPUT_PIN 25
 
 static const char TAG[] = "Main";
+
+
+
+extern const char webmain_html_start[] asm("_binary_webmain_html_start");
+extern const char webmain_html_end[] asm("_binary_webmain_html_end");
+
 
 
 
@@ -82,6 +97,22 @@ void arduinoTask(void *pvParameter) {
 /**
  * Webserver
  */
+static esp_err_t uri_get_root_handler(httpd_req_t *req) {
+    size_t html_len = webmain_html_end - webmain_html_start;
+
+    /* Send html */
+    esp_err_t res = httpd_resp_send(req, webmain_html_start, html_len);
+
+    /* Status */
+    if (res != ESP_OK) {
+        ESP_LOGE(TAG, "Error httpd_resp_send: %d", res);
+        return ESP_FAIL;
+    }
+
+    return ESP_OK;
+
+}
+
 static esp_err_t uri_get_screens_handler(httpd_req_t *req) {
 
     /* Get list of screens and their config */
@@ -98,6 +129,36 @@ static esp_err_t uri_get_screens_handler(httpd_req_t *req) {
         ESP_LOGE(TAG, "Error httpd_resp_send: %d", res);
         return ESP_FAIL;
     }
+
+    return ESP_OK;
+}
+
+static esp_err_t uri_get_files_handler(httpd_req_t *req) {
+    esp_err_t res;
+
+    std::string sem = ",";
+
+    DIR* dir = opendir("/spiffs/");
+    if (dir == NULL) {
+        return ESP_FAIL;
+    }
+
+    while (true) {
+        struct dirent* de = readdir(dir);
+        if (!de) {
+            break;
+        }
+
+        res = httpd_resp_sendstr_chunk(req, de->d_name);
+        res = httpd_resp_sendstr_chunk(req, sem.c_str());
+        
+        printf("Found file: %s\n", de->d_name);
+    }
+
+    closedir(dir);
+
+    /* Send empty chunk to signal HTTP response completion */
+    httpd_resp_sendstr_chunk(req, NULL);
 
     return ESP_OK;
 }
@@ -123,6 +184,8 @@ static esp_err_t uri_post_config_screen_handler(httpd_req_t *req) {
         cur_len += received_len;
     }
     buf[total_len] = '\0';
+
+    ESP_LOGI(TAG, "%s", buf);
 
     /* Parse JSON
        Config [ "screen_name", "conf1_val" , "conf2_val" ...]
@@ -167,6 +230,20 @@ static void start_web_server() {
     }
 
     /* URI */
+    httpd_uri_t uri_get_root = {
+        .uri        = "/",
+        .method     = HTTP_GET,
+        .handler    = uri_get_root_handler
+    };
+    httpd_register_uri_handler(server, &uri_get_root);
+
+    httpd_uri_t uri_get_files = {
+        .uri        = "/api/files",
+        .method     = HTTP_GET,
+        .handler    = uri_get_files_handler
+    };
+    httpd_register_uri_handler(server, &uri_get_files);
+
     httpd_uri_t uri_get_screens = {
         .uri        = "/api/screens",
         .method     = HTTP_GET,
@@ -220,6 +297,41 @@ extern "C" void app_main() {
     setCpuFrequencyMhz(240);
     ESP_LOGI("XF", "CpuFreqMHz: %u MHz\n", getCpuFrequencyMhz());
 
+
+    // CRGB leds[256]; //24 led
+	// initSPIws2812();
+	// for(int i = 0 ; i < 12 ; i++)
+	// {
+	// 	CRGB c;// = {.r=0,.g=0xff,.b=0};
+    //     c.r = 0;
+    //     c.g = 0;
+    //     c.b = 238;
+	// 	leds[i] = c;
+	// }
+
+    // for(int i = 12 ; i < 256 ; i++)
+	// {
+	// 	CRGB c;// = {.r=0,.g=0xff,.b=0};
+    //     c.r = 120;
+    //     c.g = 0;
+    //     c.b = 0;
+	// 	leds[i] = c;
+	// }
+	
+	// fillBuffer((uint32_t*)&leds,256);
+	// led_strip_update();
+
+    // Display *di = new Display();
+    // di->init();
+    // di->setCursor(0);
+    // di->print("XDDDDD");
+    // di->sendBuffer();
+
+    // while (1) {
+    //     vTaskDelay(20 / portTICK_PERIOD_MS);
+    // }
+
+
     /* initialize arduino library before we start the tasks */
     // initArduino();
 
@@ -235,8 +347,8 @@ extern "C" void app_main() {
     esp_vfs_spiffs_register(&config_spiffs);
 
     /* WS2812B */
-    gpio_pad_select_gpio(GPIO_NUM_27);  // configure pins as GPIO
-    gpio_set_direction(GPIO_NUM_27, GPIO_MODE_OUTPUT);
+    // gpio_pad_select_gpio(GPIO_NUM_27);  // configure pins as GPIO
+    // gpio_set_direction(GPIO_NUM_27, GPIO_MODE_OUTPUT);
 
     /* Screens */
     screens_manager_wifi_queue = xQueueCreate(10, sizeof(uint8_t));

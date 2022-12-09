@@ -31,7 +31,7 @@ std::vector<Screens::ConfigInput_t> ScreenTime::getDefaultConfig() {
             "graphic",
             "Main graphic",
             "Graphic displayed next to time",
-            "skull"
+            "skull.anim"
         }, {
             Screens::TEXT,
             "timezone",
@@ -90,8 +90,11 @@ void ScreenTime::tick(Display *display, uint16_t ticks, std::vector<ConfigInput_
     display->setCursor(10);
     display->print(cstr);
 
+    display->setCursor(0);
+    helper_display_graphics(display,  conf.at(0).value.c_str(), 2, ticks);
+
     /* Send buffer */
-    portDISABLE_INTERRUPTS(); display->sendBuffer(); portENABLE_INTERRUPTS();
+    display->sendBuffer();
 }
 
 

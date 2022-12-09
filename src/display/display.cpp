@@ -9,21 +9,27 @@
 #include "display.h"
 // #include "utils.h"
 #include "ws2812b/ws2812b.h"
-// #include 
+
+
+
+
+static const char TAG[] = "display";
 
 WS2812B *ws2812b;
 
 
+
 void Display::init() {
     display_cursor = 0;
-    clearBuffer();
+    // clearBuffer();
 
-    ws2812b = new WS2812B();
+    // ws2812b = new WS2812B();
 
     // ESP_LOGI("START", "START");
     // _DELAY_x40ns(50000000);
     // ESP_LOGI("STOP", "STOP");
 
+    initSPIws2812();
 
 }
 
@@ -49,11 +55,28 @@ void Display::clearBuffer() {
 }
 
 void Display::sendBuffer() {
-    WS2812B_RESET();
-    for (int i=0; i<BUFFER_LENGTH; i+=3) {
-        ws2812b->sendRGB(display_buffer[i], display_buffer[i+1], display_buffer[i+2]);
-    }
-    WS2812B_RESET();
+    // WS2812B_RESET();
+    // for (int i=0; i<BUFFER_LENGTH; i+=3) {
+    //     ws2812b->sendRGB(display_buffer[i], display_buffer[i+1], display_buffer[i+2]);
+    // }
+    // WS2812B_RESET();
+
+    CRGB leds[256];
+	for(int i = 0 ; i < 768 ; i+=3) {
+		CRGB c;
+        c.r = display_buffer[i];
+        c.g = display_buffer[i+1];
+        c.b = display_buffer[i+2];
+		leds[i/3] = c;
+	}
+
+    fillBuffer((uint32_t*)&leds, 256);
+	led_strip_update();
+
+
+
+    
+
 }
 
 /**
