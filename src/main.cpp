@@ -52,8 +52,6 @@ extern const char webmain_html_start[] asm("_binary_webmain_html_start");
 extern const char webmain_html_end[] asm("_binary_webmain_html_end");
 
 
-
-
 void wifiScan() {
     // WiFi.scanNetworks will return the number of networks found
     int n = WiFi.scanNetworks();
@@ -209,10 +207,11 @@ static esp_err_t uri_post_config_screen_handler(httpd_req_t *req) {
         config.push_back(el->valuestring);
     }
 
-    screensManager_set_config(screen_name, config);
+    esp_err_t err = screensManager_set_config(screen_name, config);
 
+    if (err == ESP_OK) httpd_resp_sendstr(req, "OK");
+    else httpd_resp_sendstr(req, "Failed");
 
-    httpd_resp_sendstr(req, "OK");
     return ESP_OK;
 }
 
@@ -353,8 +352,7 @@ extern "C" void app_main() {
     /* Screens */
     screens_manager_wifi_queue = xQueueCreate(10, sizeof(uint8_t));
     screens_manager_btn_queue = xQueueCreate(10, sizeof(ButtonState));
-    screens_manager_init();
-    screens_manager_start();
+    screensManager_start();
 
     /* Button next */
     EasyButton btnNext;

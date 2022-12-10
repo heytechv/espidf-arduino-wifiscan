@@ -29,16 +29,23 @@
 
 static const char TAG[] = "WifiProvisioning.STA";
 
+extern const char webprovisioning_html_start[] asm("_binary_webprovisioning_html_start");
+extern const char webprovisioning_html_end[] asm("_binary_webprovisioning_html_end");
+
 
 static esp_err_t uri_get_root_handler(httpd_req_t *req) {
-    // Send response (html)
-    esp_err_t res = httpd_resp_send(req, (char*)modeAP_root_html, modeAP_root_html_len);
+    size_t html_len = webprovisioning_html_end - webprovisioning_html_start;
+
+    /* Send html */
+    esp_err_t res = httpd_resp_send(req, webprovisioning_html_start, html_len);
+
+    /* Status */
     if (res != ESP_OK) {
-        ESP_LOGE(TAG, "(uri_get_root_handler) Error httpd_resp_send: %d", res);
-        return -1;
+        ESP_LOGE(TAG, "Error httpd_resp_send: %d", res);
+        return ESP_FAIL;
     }
 
-    ESP_LOGI(TAG, "(uri_get_root_handler) Success httpd_resp_send");
+    ESP_LOGI(TAG, "Success httpd_resp_send");
     return ESP_OK;
 }
 

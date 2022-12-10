@@ -1,0 +1,94 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <title>Select Wifi</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1' />
+    <style>
+        html {font-family: Arial;}
+    </style>
+</head>
+<body>
+    <form method='post' action='/'>
+        <input type='text' name='ssid' placeholder='SSID'/><br/>
+        <input type='text' name='pass' placeholder='Password'/><br/>
+        <input type='submit' value='Save'/>
+    </form>
+</body> -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script
+  src="https://code.jquery.com/jquery-3.6.1.min.js"
+  integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ="
+  crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <div class="m">
+        <div class="t">Wifi Settings</div>
+
+        <div class="frame">
+            Wypełnij uwierzytelnienie do sieci, a następnie zrestartuj.
+        </div><br/>
+
+        <form method='post' action='/'>
+            <input class='in' type='text' name='ssid' placeholder='SSID'/><br/>
+            <input class='in' type='text' name='pass' placeholder='Password'/><br/>
+            <input type='hidden' name='rob' placeholder='xd21'/><br/>
+            <input class='apply' type='submit' value='Save'/>
+        </form>
+
+    </div>
+
+
+    <style>
+
+        body { font-family: 'Roboto', sans-serif; }
+
+        .m { padding: 12px; }
+        .t { font-size: 24px; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 2px solid #E8E7EA;}
+        .n { font-size: 16px; }
+        .d { font-size: 12px; }
+
+        .in {
+            margin-top: 8px;
+            margin-bottom: 12px;
+            width: 100%;
+            padding: 12px 12px;
+            box-sizing: border-box;
+            background-color: #f1f1f1;
+            color: black;
+            border-radius: 30px;
+            border: none;
+        }
+
+        .apply {
+            width: 100%;
+            background: #0C1617;
+            border-radius: 30px;
+            padding: 6px 50px;
+            font-size: 18px;
+            color: #FFFFFF;
+            margin-top: 12px;
+        }
+
+        .frame {
+            display: flex;
+            flex-direction: row;
+            border: 2px solid #E8E7EA;
+            border-radius: 10px;
+            font-size: 16px;
+            padding: 24px   
+        }
+
+
+    </style>
+
+</body>
+</html>
+

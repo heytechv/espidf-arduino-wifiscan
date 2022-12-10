@@ -29,12 +29,14 @@ idf_component_register(SRCS
 
 "screens/default/ScreenSTAFailed.cpp"
 "screens/default/ScreenSTAFailed.h"
+"screens/default/ScreenSTAConnected.cpp"
+"screens/default/ScreenSTAConnected.h"
 
-"screens/default/ScreenTime.cpp"
-"screens/default/ScreenTime.h"
+"screens/extra/ScreenTime.cpp"
+"screens/extra/ScreenTime.h"
 
-"screens/default/ScreenText.cpp"
-"screens/default/ScreenText.h"
+"screens/extra/ScreenText.cpp"
+"screens/extra/ScreenText.h"
 
 
 "screens/Screens.h"
@@ -53,3 +55,4 @@ idf_component_register(SRCS
 )
 
 target_add_binary_data(${COMPONENT_TARGET} "web/webmain.html" TEXT)
+target_add_binary_data(${COMPONENT_TARGET} "web/webprovisioning.html" TEXT)

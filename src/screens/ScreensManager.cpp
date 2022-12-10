@@ -19,114 +19,99 @@
 
 #include "default/ScreenLoading.h"
 #include "default/ScreenAPConfig.h"
-#include "default/ScreenTime.h"
-#include "default/ScreenText.h"
 #include "default/ScreenSTAFailed.h"
+#include "default/ScreenSTAConnected.h"
 
-
-
-
-/* Basic (not changeable) screens */
-#define SCREEN_LOADING 0
-#define SCREEN_AP_CREATED 1
-#define SCREEN_STA_FAILED 2
+#include "extra/ScreenTime.h"
+#include "extra/ScreenText.h"
 
 
 static const char TAG[] = "ScreensManager";
 
-
-
+/* List of all screens */
 typedef struct ScreenConfig_t {
     Screens *screen;
     std::vector<Screens::ConfigInput_t> conf;
 } ScreenConfig_t;
 
-std::vector<ScreenConfig_t> screenList;
+std::vector<ScreenConfig_t> screenList;  // the list
 
-
+/* Ticks */
 uint16_t screens_manager_ticks = 0;
 
+/* Display */
 Display *screens_manager_display;
 
 /* Queues */
 QueueHandle_t screens_manager_wifi_queue;
 QueueHandle_t screens_manager_btn_queue;
 
-/* Screens */
-// Screens *screensTab[255];
-// unsigned int screensTab_amount = 0;
-// unsigned int screensTab_basic_max = 0;
-// unsigned int screensTab_index = 0;
 
-
-void screens_manager_init() {
-    /* Init display */
-    screens_manager_display = new Display();
-    screens_manager_display->init();
-
-    screens_manager_display->setBrightness(5);
-
-    /**
-     * Register basic screens
-     * */
-    /* Screen: Loading */
-    // ScreenLoading *screenLoading = new ScreenLoading();
-    // screens_manager_register_basic_screen(screenLoading, SCREEN_LOADING);
-    // /* Screen: AP created */
-    // ScreenAPConfig *screenAPConfig = new ScreenAPConfig();
-    // screens_manager_register_basic_screen(screenAPConfig, SCREEN_AP_CREATED);
-    // /* Screen: STA failed */
-    // ScreenSTAFailed *screenSTAFailed = new ScreenSTAFailed();
-    // screens_manager_register_basic_screen(screenSTAFailed, SCREEN_STA_FAILED);
-
-    // screensTab_amount = 3;
-    // screensTab_basic_max = SCREEN_STA_FAILED;
-
-    // /* Screen: Time */
-    // ScreenTime *screenTime = new ScreenTime();
-    // screens_manager_register_screen(screenTime);
-    // /* Screen: Text */
-    // ScreenText *screenText = new ScreenText();
-    // screens_manager_register_screen(screenText);
-
+/**
+ * Init
+ */
+void screensManager_init() {
     /* Screen: Time */
     ScreenTime *screenTime = new ScreenTime();
-    screens_manager_register_screen(screenTime);
+    screensManager_register_screen(screenTime);
 
+    /* Screen text*/
+    ScreenText *screenText = new ScreenText();
+    screensManager_register_screen(screenText);
 }
 
-void screens_manager_start() {
-    xTaskCreatePinnedToCore(screens_manager_task, "screens_manager_task", 8192, NULL, 3, NULL, APP_CPU_NUM);
-}
 
-void screens_manager_register_basic_screen(Screens *screensRob, uint8_t pos) {
-    // if (pos >= 255) {
-    //     ESP_LOGE(TAG, "Unable to register screen, limit reached");
-    //     return;
-    // }
-
-    // screensTab[pos] = screensRob;
-
-}
-
-void screens_manager_register_screen(Screens *s) {
+/**
+ * Screen registration
+ */
+esp_err_t screensManager_register_screen(Screens *s) {
     if (screenList.size() >= 255) {
         ESP_LOGE(TAG, "Unable to register screen, limit reached");
-        return;
+        return ESP_FAIL;
     }
 
     ScreenConfig_t sc = { s, s->getDefaultConfig() };
     screenList.push_back(sc);
+
+    return ESP_OK;
 }
 
-bool is_init_done = false;
+/**
+ * Start task
+ */
+void screensManager_start() {
+    /* Init display */
+    screens_manager_display = new Display();
+    screens_manager_display->init();
+    screens_manager_display->setBrightness(5);
 
-void screens_manager_task(void *argp) {
+    /* Init screens */
+    screensManager_init();
+
+    /* Start task */
+    xTaskCreatePinnedToCore(screensManager_task, "screensManager_task", 8192, NULL, 3, NULL, APP_CPU_NUM);
+}
+
+/**
+ * The task
+ */
+void screensManager_task(void *argp) {
+
+    Screens *s = new ScreenLoading();
+    ScreenConfig_t sc = {};
+
+    /* Default immutable screens */
+    Screens *sLoading = new ScreenLoading();
+    Screens *sAPConfig = new ScreenAPConfig();
+    Screens *sSTAFailed = new ScreenSTAFailed();
+    Screens *sSTAConnected = new ScreenSTAConnected();
+
+    /* Loop */
+    bool is_init_done = false;
+    uint8_t cur_screen_index = 0;
 
     uint8_t wifi_flag = 0;
     ButtonState btn_next_flag = IDLE;
-
-    uint8_t cur_screen_index = 0;
 
     while (true) {
         btn_next_flag = IDLE;
@@ -142,81 +127,76 @@ void screens_manager_task(void *argp) {
         /**
          *  Pre-built screens 
          * */
-        // if (wifi_flag == WIFI_AP_CREATING_FLAG || wifi_flag == WIFI_AP_CREATED_FLAG || wifi_flag == WIFI_AP_WEBSERVER_STARTING_FLAG) {
-        //     /* Screen loading */
-        //     screensTab_index = SCREEN_LOADING;
-        // } else if (wifi_flag == WIFI_AP_WEBSERVER_STARTED_FLAG) {
-        //     /* Screen AP created (website for input data)*/
-        //     screensTab_index = SCREEN_AP_CREATED;
-        // } else if (wifi_flag == WIFI_STA_CONNECTING_FLAG) {
-        //     /* Screen loading */
-        //     screensTab_index = SCREEN_LOADING;
-        // } else if (wifi_flag == WIFI_STA_FAIL_FLAG) {
-        //     /* Screen STA connection failed */
-        //     screensTab_index = SCREEN_STA_FAILED;
-        // } else if (wifi_flag == WIFI_STA_CONNECTED_FLAG) {
-        //     is_init_done = true;
-        //     screensTab_index = screensTab_basic_max+1;
-        // }
-
+        /* AP */
+        if (wifi_flag == WIFI_AP_CREATING_FLAG || wifi_flag == WIFI_AP_CREATED_FLAG || wifi_flag == WIFI_AP_WEBSERVER_STARTING_FLAG) {
+            s = sLoading;
+        } else if (wifi_flag == WIFI_AP_WEBSERVER_STARTED_FLAG) {
+            s = sAPConfig;
+        }
+        /* STA */
+        else if (wifi_flag == WIFI_STA_CONNECTING_FLAG) {
+            s = sLoading;
+        } else if (wifi_flag == WIFI_STA_FAIL_FLAG) {
+            s = sSTAFailed;
+        } else if (wifi_flag == WIFI_STA_CONNECTED_FLAG) {
+            s = sSTAConnected;
+            // is_init_done = true;
+        } // todo not connected
 
         /**
-         * User screens
-         * */
-        // if (is_init_done) {
+         * Screen selecting
+         */
+        if (is_init_done) {
+            
+            /* Button */
+            if (btn_next_flag == SINGLE_CLICK) {
+                ESP_LOGI(TAG, "next screen");
+                cur_screen_index ++;
+            } else if (btn_next_flag == DOUBLE_CLICK || btn_next_flag == MULTI_CLICK) {
+                ESP_LOGI(TAG, "screen action");
+            }
 
-        //     if (btn_next_flag == SINGLE_CLICK) {
-        //         ESP_LOGI(TAG, "next screen");
-        //         screensTab_index ++;
-        //     } else if (btn_next_flag == DOUBLE_CLICK || btn_next_flag == MULTI_CLICK) {
-        //         ESP_LOGI(TAG, "screen action");
-        //     }
+            /* Overflow */
+            if (cur_screen_index >= screenList.size()) {
+                cur_screen_index = 0;
+            }
 
-
-        // }
-
-
-        /* Overflow */
-        if (cur_screen_index > screenList.size()) {
-            cur_screen_index = 0;
+            /* Tick selected screen */
+            ESP_LOGI(TAG, "sc: %d", cur_screen_index);
+            sc = screenList.at(cur_screen_index);
+            s = sc.screen;
         }
 
-        /** 
-         * Tick selected screen
-         * */
-        // if (screensTab_index >= screensTab_amount) {
-        //     screensTab_index = screensTab_basic_max+1;
-        // }
-        ScreenConfig_t sc = screenList.at(cur_screen_index);
-        Screens *s = sc.screen;
         s->tick(screens_manager_display, screens_manager_ticks, sc.conf);
-
         vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 
 }
 
+/**
+ * Get config from each screen and return as json string
+ */
 std::string screensManager_get_config_json_str() {
     /**
      * {
-     *  "screen_name": {
-     *      "conf_name1": [
+     *  "screen_name": [
+     *      [
      *          1,
      *          "Main graphic",
      *          "Graphic displayed next to time",
      *          "skull0.bmp"
      *      ],
-     *      "conf_name2": [
+     *      [
      *          0,
      *          "Timezone",
      *          "Your city timezone",
      *          "Warsaw"
      *      ]
-     *  }
+     *  ]
      * }
      */
 
-    cJSON *jsonRoot, *jsonScreen, *jsonConfArray, *element;
+    cJSON *jsonRoot, *jsonScreenArray, *jsonConfArray, *element;
     jsonRoot = cJSON_CreateObject();
 
     int screens_size = screenList.size();
@@ -235,8 +215,7 @@ std::string screensManager_get_config_json_str() {
         screen_name = sc->screen->getName();
         conf_size = sc->conf.size();
 
-        jsonScreen = cJSON_AddArrayToObject(jsonRoot, screen_name.c_str());
-
+        jsonScreenArray = cJSON_AddArrayToObject(jsonRoot, screen_name.c_str());
 
         /* Iterate over conf list of screen */
         for (int n=0; n<conf_size; n++) {
@@ -247,7 +226,7 @@ std::string screensManager_get_config_json_str() {
             description = sc->conf.at(n).description;
             value = sc->conf.at(n).value;
 
-            jsonConfArray = cJSON_AddArrayToObject(jsonScreen, fieldName.c_str());
+            jsonConfArray = cJSON_AddArrayToObject(jsonScreenArray, fieldName.c_str());
 
             element = cJSON_CreateNumber(fieldType);
             cJSON_AddItemToArray(jsonConfArray, element);
@@ -263,33 +242,6 @@ std::string screensManager_get_config_json_str() {
         }
     }
 
-    //     cJSON_AddItemToObject(jsonRoot, screen_name.c_str(), jsonScreen=cJSON_CreateObject());
-
-    //     /* Iterate over conf list of screen */
-    //     for (int n=0; n<conf_size; n++) {
-    //         fieldName = sc->conf.at(n).fieldName;
-
-    //         fieldType = sc->conf.at(n).fieldType;
-    //         title = sc->conf.at(n).title;
-    //         description = sc->conf.at(n).description;
-    //         value = sc->conf.at(n).value;
-
-    //         jsonConfArray = cJSON_AddArrayToObject(jsonScreen, fieldName.c_str());
-
-    //         element = cJSON_CreateNumber(fieldType);
-    //         cJSON_AddItemToArray(jsonConfArray, element);
-
-    //         element = cJSON_CreateString(title.c_str());
-    //         cJSON_AddItemToArray(jsonConfArray, element);
-            
-    //         element = cJSON_CreateString(description.c_str());
-    //         cJSON_AddItemToArray(jsonConfArray, element);
-
-    //         element = cJSON_CreateString(value.c_str());
-    //         cJSON_AddItemToArray(jsonConfArray, element);
-    //     }
-    // }
-
     /* Parse to string */
     char *res = cJSON_PrintUnformatted(jsonRoot);
     cJSON_Delete(jsonRoot);
@@ -297,19 +249,20 @@ std::string screensManager_get_config_json_str() {
 }
 
 
+/**
+ * Set screen config (find by name)
+ */
 // UWAGA! przepisac na queue albo semaphore
-void screensManager_set_config(std::string screen_name, std::vector<std::string> conf_new) {
+esp_err_t screensManager_set_config(std::string screen_name, std::vector<std::string> conf_new) {
     ScreenConfig_t *sc;
 
     std::string name;
 
-    int screens_size = screenList.size();
-    int old_conf_size = 0;
-    int new_conf_size = 0;
-    int min_conf_size = 0;
+    size_t screenList_size = screenList.size();
+    int old_conf_size = 0, new_conf_size = 0, min_conf_size = 0;
 
     /* Find screen by name */
-    for (int i=0; i<screens_size; i++) {
+    for (int i=0; i<screenList_size; i++) {
         sc = &screenList.at(i);
 
         name = sc->screen->getName();
@@ -328,10 +281,11 @@ void screensManager_set_config(std::string screen_name, std::vector<std::string>
             for (int n=0; n<min_conf_size; n++) {
                 sc->conf.at(n).value = conf_new.at(n);
             }
-            return;
+            return ESP_OK;
         }
     }
 
     ESP_LOGE(TAG, "Unable to set conf for screen %s", screen_name.c_str());
+    return ESP_FAIL;
 }
 

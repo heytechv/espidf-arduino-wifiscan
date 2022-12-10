@@ -16,6 +16,16 @@
 static const char TAG[] = "ScreenText";
 
 
+std::string ScreenText::getName() {
+    return "Text";
+}
+
+std::vector<Screens::ConfigInput_t> ScreenText::getDefaultConfig() {
+    std::vector<ConfigInput_t> conf = {};
+    return conf;
+}
+
+
 void ScreenText::tick(Display *display, uint16_t ticks, std::vector<ConfigInput_t> conf) {
     /* Prepare display */
     display->clearBuffer();
@@ -31,6 +41,6 @@ void ScreenText::tick(Display *display, uint16_t ticks, std::vector<ConfigInput_
     display->print("Some text");
 
     /* Send buffer */
-    portDISABLE_INTERRUPTS(); display->sendBuffer(); portENABLE_INTERRUPTS();
+    display->sendBuffer();
 }
 

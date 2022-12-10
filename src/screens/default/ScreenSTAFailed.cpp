@@ -17,28 +17,32 @@
 static const char TAG[] = "ScreenSTAFailed";
 
 
+std::string ScreenSTAFailed::getName() {
+    return "STAFailed";
+}
 
+std::vector<Screens::ConfigInput_t> ScreenSTAFailed::getDefaultConfig() {
+    std::vector<ConfigInput_t> conf = {};
+    return conf;
+}
 
+static uint8_t wifi_disconnected_anim_frame = 0;
 void ScreenSTAFailed::tick(Display *display, uint16_t ticks, std::vector<ConfigInput_t> conf) {
     /* Prepare display */
     display->clearBuffer();
 
-    /* Graphics animation frame */
-    // if (ticks%4 == 0) anim_frame ++;
+    display->setCursor(0);
+    display->print("PC");
 
+    display->setCursor(7);
+    helper_display_graphics(display, "connection_broken_part0.bmp", ticks, 1, &wifi_disconnected_anim_frame);
+    display->setCursor(15);
+    helper_display_graphics(display, "connection_broken_part1.bmp", ticks, 1, &wifi_disconnected_anim_frame);
 
-    // if (anim_frame >= anim_pxci_wifi_ap_fc) anim_frame = 0;
-
-
-    /* Display graphics */
-    // display->setCursor(0);
-    // display->showPxci(anim_pxci_wifi_ap[anim_frame].graphics, (uint8_t (*)[3]) anim_pxci_wifi_ap[anim_frame].colormap, 0);   // "." used for non pointers, "->" for pointers
-
-    // display->setCursor(12);
-    // display->showPxci(i_pxci_xsign_gp, (uint8_t (*)[3]) i_pxci_xsign_cm, 0);   // "." used for non pointers, "->" for pointers
-
+    display->setCursor(23);
+    helper_display_graphics(display, "wifi_disconnected.bmp", ticks, 1, &wifi_disconnected_anim_frame);
 
     /* Send buffer */
-    portDISABLE_INTERRUPTS(); display->sendBuffer(); portENABLE_INTERRUPTS();
+    display->sendBuffer();
 }
 

@@ -16,8 +16,9 @@
 class ScreenAPConfig : public Screens {
 public:
 
+    virtual std::string getName() override;
+    virtual std::vector<ConfigInput_t> getDefaultConfig() override;
     virtual void tick(Display *display, uint16_t ticks, std::vector<ConfigInput_t> conf) override;
-
 
 };
 

@@ -31,20 +31,22 @@ std::vector<Screens::ConfigInput_t> ScreenTime::getDefaultConfig() {
             "graphic",
             "Main graphic",
             "Graphic displayed next to time",
-            "skull.anim"
-        }, {
-            Screens::TEXT,
-            "timezone",
-            "Timezone",
-            "Your city timezone",
-            "CET-1CEST,M3.5.0,M10.5.0/3"  // Warsaw
+            "clock.anim"
         }
+        // , {
+        //     Screens::TEXT,
+        //     "timezone",
+        //     "Timezone",
+        //     "Your city timezone",
+        //     "CET-1CEST,M3.5.0,M10.5.0/3"  // Warsaw
+        // }
     };
 
     return conf;
 }
 
 
+static uint8_t graphics_anim_frame = 0;
 void ScreenTime::tick(Display *display, uint16_t ticks, std::vector<ConfigInput_t> conf) {
 
 
@@ -91,7 +93,7 @@ void ScreenTime::tick(Display *display, uint16_t ticks, std::vector<ConfigInput_
     display->print(cstr);
 
     display->setCursor(0);
-    helper_display_graphics(display,  conf.at(0).value.c_str(), 2, ticks);
+    helper_display_graphics(display,  conf.at(0).value.c_str(), ticks, 2, &graphics_anim_frame);
 
     /* Send buffer */
     display->sendBuffer();

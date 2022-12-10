@@ -18,28 +18,32 @@ static const char TAG[] = "ScreenAPConfig";
 int anim_frame2 = 0;
 
 
+
+std::string ScreenAPConfig::getName() {
+    return "APConfig";
+}
+
+std::vector<Screens::ConfigInput_t> ScreenAPConfig::getDefaultConfig() {
+    std::vector<ConfigInput_t> conf = {};
+    return conf;
+}
+
+static uint8_t download_blue_anim_frame = 0;
+static uint8_t wifi_ap_anim_frame = 0;
 void ScreenAPConfig::tick(Display *display, uint16_t ticks, std::vector<ConfigInput_t> conf) {
     /* Prepare display */
     display->clearBuffer();
 
-    /* Graphics animation frame */
-    if (ticks%4 == 0) anim_frame ++;
-    if (ticks%2 == 0) anim_frame2 ++;
+    display->setCursor(0);
+    display->print("PC");
+    
+    display->setCursor(11);
+    helper_display_graphics(display, "download_blue.anim", ticks, 1, &download_blue_anim_frame);
 
-
-    // if (anim_frame >= anim_pxci_wifi_ap_fc) anim_frame = 0;
-    // if (anim_frame2 >= anim_pxci_arrow_right_fc) anim_frame2 = 0;
-
-
-    // /* Display graphics */
-    // display->setCursor(0);
-    // display->showPxci(anim_pxci_wifi_ap[anim_frame].graphics, (uint8_t (*)[3]) anim_pxci_wifi_ap[anim_frame].colormap, 0);   // "." used for non pointers, "->" for pointers
-
-    // display->setCursor(12);
-    // display->showPxci(anim_pxci_arrow_right[anim_frame2].graphics, (uint8_t (*)[3]) anim_pxci_arrow_right[anim_frame2].colormap, 0);   // "." used for non pointers, "->" for pointers
-
+    display->setCursor(23);
+    helper_display_graphics(display, "wifi_ap.anim", ticks, 2, &wifi_ap_anim_frame);
 
     /* Send buffer */
-    portDISABLE_INTERRUPTS(); display->sendBuffer(); portENABLE_INTERRUPTS();
+    display->sendBuffer();
 }
 

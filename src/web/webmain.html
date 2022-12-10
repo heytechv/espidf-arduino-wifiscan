@@ -13,7 +13,6 @@
 
     <div class="m">
         <div class="t">PixelClock
-            <div class="d">Only first 5 screens are taken.</div>
         </div>
         <div id="list" >
 
@@ -32,7 +31,7 @@
             <!-- Screens end -->
 
         </div>
-        <div style="position:absolute; bottom: 0; left:50%; transform: translate(-50%, -50%); margin: auto;"><input type='submit' value='Apply' class='apply'></input></div>
+        <!-- <div style="position:absolute; bottom: 0; left:50%; transform: translate(-50%, -50%); margin: auto;"><input type='submit' value='Apply' class='apply'></input></div> -->
     </div>
 
     <dialog id="dialog">
@@ -93,7 +92,7 @@
 
             let html = "";
             for (let screen in screensJson) {
-                html += "<div class='i' onclick='showInputDialog(\"" + screen + "\");'><div class='screen'><div class='info'><span class='n'>"+screen+"</span><span class='d'>Opis mial byc ale sie rozjebalem</span></div></div></div>";
+                html += "<div class='i' onclick='showInputDialog(\"" + screen + "\");'><div class='screen'><div class='info'><span class='n'>"+screen+"</span><span class='d'></span></div></div></div>";
             }
 
             list.innerHTML = html;
@@ -176,6 +175,8 @@
 
 
         function sendScreenConfig() {
+            dialog.close();
+            
             var formData = $("#dform").serializeArray();
             var resultJson = [];
             for (let d in formData) {
