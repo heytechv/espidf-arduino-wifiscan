@@ -24,7 +24,9 @@ void screensManager_start();
 void screensManager_task(void *argp);
 
 std::string screensManager_get_config_json_str();
-esp_err_t screensManager_set_config(std::string screen_name, std::vector<std::string> conf);
+esp_err_t screensManager_set_screen(std::string screen_name, std::vector<std::string> conf);
+esp_err_t screensManager_set_screens(std::vector<std::string> screen_names);
+int screensManager_get_screens_visible_amount();
 
 
 #endif

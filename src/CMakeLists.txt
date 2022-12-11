@@ -27,6 +27,8 @@ idf_component_register(SRCS
 "screens/default/ScreenAPConfig.cpp"
 "screens/default/ScreenAPConfig.h"
 
+"screens/default/ScreenSTAConnecting.cpp"
+"screens/default/ScreenSTAConnecting.h"
 "screens/default/ScreenSTAFailed.cpp"
 "screens/default/ScreenSTAFailed.h"
 "screens/default/ScreenSTAConnected.cpp"

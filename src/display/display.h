@@ -37,7 +37,7 @@ private:
     };
 
     uint8_t display_buffer[BUFFER_LENGTH] = {};      // Bufor ramki, https://pl.wikipedia.org/wiki/Bufor_ramki, TODO define 768
-    uint8_t display_cursor = 0;
+    int16_t display_cursor = 0;
     uint8_t display_brightess = DISPLAY_BTIGHTNESS;  // Brightness (1-255), Default: 32 (please consider using better power source if u want to increase this nubmer greatly)
 
     /**
@@ -64,13 +64,13 @@ public:
      * 
      * @param c new cursor position
      */
-    void setCursor(uint8_t c);
+    void setCursor(int16_t c);
 
     /**
      * @brief Get display cursor
      * @return cursor position
      */
-    uint8_t getCursor();
+    int16_t getCursor();
 
     /**
      * @brief Set display brightness
@@ -96,6 +96,16 @@ public:
      * 
      */
     void sendBuffer();
+
+    /**
+     * @brief Get width of char
+     */
+    uint8_t getWidth(char c);
+
+    /**
+     * @brief Get width of text
+     */
+    uint8_t getWidthText(char *text);
 
     /**
      * @brief Populate buffer with char (font data) 

@@ -47,8 +47,80 @@ public:
     virtual void tick(Display *display, uint16_t ticks, std::vector<ConfigInput_t> conf) { }
 
 
+    void display_setCursor(Display *display, int16_t cursor) {
+        display->setCursor(cursor);
+    }
+
+    int16_t display_getCursor(Display *display) {
+        return display->getCursor();
+    }
+
+    uint8_t display_print(Display *display, std::string text) {
+        char *ctext = new char[text.length() + 1];
+        strcpy(ctext, text.c_str());
+
+        uint8_t width = display->print(ctext);
+
+        delete [] ctext;
+
+        return width;
+    }
+
+    uint8_t display_getTextWidth(Display *display, std::string text) {
+        char *ctext = new char[text.length() + 1];
+        strcpy(ctext, text.c_str());
+
+        uint8_t width = display->getWidthText(ctext);
+
+        delete [] ctext;
+
+        return width;
+    }
+
+    void display_clearBuffer(Display *display) {
+        display->clearBuffer();
+    }
+
+    void display_sendBuffer(Display *display) {
+        display->sendBuffer();
+    }
+
+    void display_text(Display *display, std::string text, int16_t *cursor_scroll) {
+        uint8_t skip_scroll_amount = 12;  // todo do screen manager global config
+
+        int8_t cursor_start = display_getCursor(display);
+        uint8_t width = display_getTextWidth(display, text);
+
+        /* Scrolling only for too long text */
+        if (width >= 32 - cursor_start) {  // todo display width here (32px)
+            int16_t cursor_new = cursor_start;
+
+            (*cursor_scroll) --;
+
+            /* Let first word be longer (to make it easier to start reading for human) */
+            if (*cursor_scroll > -skip_scroll_amount) {
+                cursor_new = cursor_start;
+
+            /* After first word displayed for longer time, start scrolling */
+            } else {
+                cursor_new = *cursor_scroll + skip_scroll_amount + cursor_start;
+            }
+
+            /* Display */
+            display_setCursor(display, cursor_new);
+            display_print(display, text);
+
+            /* Reset if scrolled everything */
+            if (*cursor_scroll < -width - cursor_start - skip_scroll_amount) {
+                *cursor_scroll = 0;
+            }
+        }
+
+    }
+
+
     void helper_display_graphics(Display *display, std::string input, uint16_t ticks, uint8_t ticks_divider, uint8_t *anim_frame) {
-        if (ticks_divider == 0) ticks_divider = 0;
+        if (ticks_divider == 0) ticks_divider = 1;
 
         /**
          * Check if animation. To do that we check if extension of the file is given.
@@ -70,11 +142,11 @@ public:
             filename = "/spiffs/" + input;            // /spiffs/skull
             filename += std::to_string(*anim_frame) + ".bmp";  // skull0.bmp, skull1.bmp ... skullX.bmp
 
-            ESP_LOGI("Screens.h", "anim: %s", filename.c_str());
+            // ESP_LOGI("Screens.h", "anim: %s", filename.c_str());
 
         } else {
             filename = "/spiffs/" + input;            // /spiffs/skull0.bmp
-            ESP_LOGI("Screens.h", "img: %s", filename.c_str());
+            // ESP_LOGI("Screens.h", "img: %s", filename.c_str());
         } 
 
         /**

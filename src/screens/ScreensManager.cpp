@@ -19,6 +19,7 @@
 
 #include "default/ScreenLoading.h"
 #include "default/ScreenAPConfig.h"
+#include "default/ScreenSTAConnecting.h"
 #include "default/ScreenSTAFailed.h"
 #include "default/ScreenSTAConnected.h"
 
@@ -34,7 +35,8 @@ typedef struct ScreenConfig_t {
     std::vector<Screens::ConfigInput_t> conf;
 } ScreenConfig_t;
 
-std::vector<ScreenConfig_t> screenList;  // the list
+std::vector<ScreenConfig_t> screenList;  // the list of visible screens
+int screenList_visible_amount = 4;       // how many screens are visible           
 
 /* Ticks */
 uint16_t screens_manager_ticks = 0;
@@ -102,18 +104,24 @@ void screensManager_task(void *argp) {
 
     /* Default immutable screens */
     Screens *sLoading = new ScreenLoading();
+
     Screens *sAPConfig = new ScreenAPConfig();
+
+    Screens *sSTAConnecting = new ScreenSTAConnecting();
     Screens *sSTAFailed = new ScreenSTAFailed();
     Screens *sSTAConnected = new ScreenSTAConnected();
+
+    uint8_t wait_ticks = 0;
 
     /* Loop */
     bool is_init_done = false;
     uint8_t cur_screen_index = 0;
 
-    uint8_t wifi_flag = 0;
+    int8_t wifi_flag = 0;
     ButtonState btn_next_flag = IDLE;
 
     while (true) {
+        wifi_flag = -1;
         btn_next_flag = IDLE;
 
         /* Ticks counting */
@@ -125,28 +133,40 @@ void screensManager_task(void *argp) {
         if (xQueueReceive(screens_manager_btn_queue, &btn_next_flag, (TickType_t)0)) { }
 
         /**
-         *  Pre-built screens 
+         *  Pre-built screens (init sequence)
          * */
-        /* AP */
-        if (wifi_flag == WIFI_AP_CREATING_FLAG || wifi_flag == WIFI_AP_CREATED_FLAG || wifi_flag == WIFI_AP_WEBSERVER_STARTING_FLAG) {
-            s = sLoading;
-        } else if (wifi_flag == WIFI_AP_WEBSERVER_STARTED_FLAG) {
-            s = sAPConfig;
+        if (is_init_done == false) {
+            /* AP */
+            if (wifi_flag == WIFI_AP_CREATING_FLAG || wifi_flag == WIFI_AP_CREATED_FLAG || wifi_flag == WIFI_AP_WEBSERVER_STARTING_FLAG) {
+                s = sLoading;
+            } else if (wifi_flag == WIFI_AP_WEBSERVER_STARTED_FLAG) {
+                s = sAPConfig;
+            }
+            /* STA */
+            else if (wifi_flag == WIFI_STA_CONNECTING_FLAG) {
+                s = sSTAConnecting;
+            } else if (wifi_flag == WIFI_STA_FAIL_FLAG) {
+                // Show connection failed screen for 5 seconds and continue without wifi
+                s = sSTAFailed;
+                wait_ticks = 50;
+                is_init_done = true;
+            } else if (wifi_flag == WIFI_STA_CONNECTED_FLAG) {
+                // Show connection success screen for 15 seconds and continue with wifi
+                s = sSTAConnected;
+                wait_ticks = 10;
+                is_init_done = true;
+            }
         }
-        /* STA */
-        else if (wifi_flag == WIFI_STA_CONNECTING_FLAG) {
-            s = sLoading;
-        } else if (wifi_flag == WIFI_STA_FAIL_FLAG) {
-            s = sSTAFailed;
-        } else if (wifi_flag == WIFI_STA_CONNECTED_FLAG) {
-            s = sSTAConnected;
-            // is_init_done = true;
-        } // todo not connected
+
+        // wait ticks (cant change screen)
+        if (wait_ticks > 0) {
+            wait_ticks --;
+        }
 
         /**
          * Screen selecting
          */
-        if (is_init_done) {
+        if (is_init_done && wait_ticks == 0) {
             
             /* Button */
             if (btn_next_flag == SINGLE_CLICK) {
@@ -157,12 +177,11 @@ void screensManager_task(void *argp) {
             }
 
             /* Overflow */
-            if (cur_screen_index >= screenList.size()) {
+            if (cur_screen_index >= screenList.size() || cur_screen_index >= screenList_visible_amount) {
                 cur_screen_index = 0;
             }
 
             /* Tick selected screen */
-            ESP_LOGI(TAG, "sc: %d", cur_screen_index);
             sc = screenList.at(cur_screen_index);
             s = sc.screen;
         }
@@ -253,7 +272,7 @@ std::string screensManager_get_config_json_str() {
  * Set screen config (find by name)
  */
 // UWAGA! przepisac na queue albo semaphore
-esp_err_t screensManager_set_config(std::string screen_name, std::vector<std::string> conf_new) {
+esp_err_t screensManager_set_screen(std::string screen_name, std::vector<std::string> conf_new) {
     ScreenConfig_t *sc;
 
     std::string name;
@@ -287,5 +306,57 @@ esp_err_t screensManager_set_config(std::string screen_name, std::vector<std::st
 
     ESP_LOGE(TAG, "Unable to set conf for screen %s", screen_name.c_str());
     return ESP_FAIL;
+}
+
+/**
+ * Set which screens and in what order will be displayed
+ */
+// UWAGA! przepisac na queue albo semaphore
+esp_err_t screensManager_set_screens(std::vector<std::string> screenNames) {
+    size_t screenList_size = screenList.size();
+    size_t screenNames_size = screenNames.size();
+
+    /* Size of screens to set cannot be larger than total screen amount*/
+    if (screenNames_size > screenList_size) {
+        ESP_LOGE(TAG, "Unable to set screens order, screenNames_size cannot be larger than screenList_size");
+        return ESP_FAIL;
+    }
+
+    /* Init */
+    ScreenConfig_t sc;
+    ScreenConfig_t scTemp;
+    std::string name, screen_name;
+
+    /* Find screen by name */
+    for (int i=0; i<screenList_size; i++) {
+        sc = screenList.at(i);
+        name = sc.screen->getName();
+
+        for (int i2=0; i2<screenNames_size; i2++) {
+            screen_name = screenNames.at(i2);
+            
+            if (name == screen_name) {
+                // if is already on place, skip
+                if (i == i2) {
+                    break;
+                }
+
+                // Swap place
+                scTemp = screenList.at(i2);
+                screenList.at(i2) = sc;
+                screenList.at(i) = scTemp;
+                break;
+            }
+        }
+
+    }
+    screenList_visible_amount = screenNames.size();
+
+    ESP_LOGE(TAG, "Screens order set");
+    return ESP_OK;
+}
+
+int screensManager_get_screens_visible_amount() {
+    return screenList_visible_amount;
 }
 

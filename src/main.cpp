@@ -112,6 +112,24 @@ static esp_err_t uri_get_root_handler(httpd_req_t *req) {
 }
 
 static esp_err_t uri_get_screens_handler(httpd_req_t *req) {
+    /**
+     * {
+     *  "screen_name": [
+     *      [
+     *          1,
+     *          "Main graphic",
+     *          "Graphic displayed next to time",
+     *          "skull0.bmp"
+     *      ],
+     *      [
+     *          0,
+     *          "Timezone",
+     *          "Your city timezone",
+     *          "Warsaw"
+     *      ]
+     *  ]
+     * }
+     */
 
     /* Get list of screens and their config */
     std::string screensJson = screensManager_get_config_json_str();
@@ -132,6 +150,9 @@ static esp_err_t uri_get_screens_handler(httpd_req_t *req) {
 }
 
 static esp_err_t uri_get_files_handler(httpd_req_t *req) {
+    /**
+     * filename1,filename2...
+     */
     esp_err_t res;
 
     std::string sem = ",";
@@ -161,7 +182,19 @@ static esp_err_t uri_get_files_handler(httpd_req_t *req) {
     return ESP_OK;
 }
 
+static esp_err_t uri_get_screens_visible_amount_handler(httpd_req_t *reg) {
+    int amount = screensManager_get_screens_visible_amount();
+    std::string strAmount = std::to_string(amount);
+    httpd_resp_sendstr(reg, strAmount.c_str());
+    return ESP_OK;
+}
+
 static esp_err_t uri_post_config_screen_handler(httpd_req_t *req) {
+    /**
+     *      [ "screen_name", "conf1_val" , "conf2_val" ...]
+     * e.g. [ "Time"       , "clock1.bmp", "10:00"]
+     */
+
     int total_len = req->content_len;
 
     int cur_len = 0;
@@ -185,9 +218,7 @@ static esp_err_t uri_post_config_screen_handler(httpd_req_t *req) {
 
     ESP_LOGI(TAG, "%s", buf);
 
-    /* Parse JSON
-       Config [ "screen_name", "conf1_val" , "conf2_val" ...]
-       e.g.   [ "Time"       , "clock1.bmp", "10:00"] */
+    /* Parse JSON */
     cJSON *root = cJSON_Parse(buf);
     int root_size = cJSON_GetArraySize(root);
 
@@ -207,7 +238,65 @@ static esp_err_t uri_post_config_screen_handler(httpd_req_t *req) {
         config.push_back(el->valuestring);
     }
 
-    esp_err_t err = screensManager_set_config(screen_name, config);
+    esp_err_t err = screensManager_set_screen(screen_name, config);
+
+    if (err == ESP_OK) httpd_resp_sendstr(req, "OK");
+    else httpd_resp_sendstr(req, "Failed");
+
+    return ESP_OK;
+}
+
+/**
+ * @brief Control which screens and in what order will be displayed
+ */
+static esp_err_t uri_post_config_screens_handler(httpd_req_t *req) {
+    /**
+     * ["screen_name1", "screen_name2"...]
+     */
+
+    int total_len = req->content_len;
+
+    int cur_len = 0;
+    int received_len = 0;
+
+    char buf[255];
+
+    /* Read data */
+    while (cur_len < total_len) {
+        received_len = httpd_req_recv(req, buf + cur_len, total_len);
+
+        if (received_len <= 0) {
+            /* Respond with 500 Internal Server Error */
+            httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to post config value");
+            return ESP_FAIL;
+        }
+
+        cur_len += received_len;
+    }
+    buf[total_len] = '\0';
+
+    ESP_LOGI(TAG, "%s", buf);
+
+    /* Parse JSON */
+    cJSON *root = cJSON_Parse(buf);
+    int root_size = cJSON_GetArraySize(root);
+
+    std::string screen_name;
+    std::vector<std::string> config;
+
+    // if 0 screens
+    if (root_size == 0) {
+        httpd_resp_sendstr(req, "Json error (length=0)");
+        return ESP_FAIL;
+    }
+
+    // get screens
+    for (int i = 0; i<root_size; i++) {
+        cJSON *el = cJSON_GetArrayItem(root, i);
+        config.push_back(el->valuestring);
+    }
+
+    esp_err_t err = screensManager_set_screens(config);
 
     if (err == ESP_OK) httpd_resp_sendstr(req, "OK");
     else httpd_resp_sendstr(req, "Failed");
@@ -250,12 +339,12 @@ static void start_web_server() {
     };
     httpd_register_uri_handler(server, &uri_get_screens);
 
-    // httpd_uri_t uri_post_config_main = {
-    //     .uri        = "/config-main",
-    //     .method     = HTTP_POST,
-    //     .handler    = uri_get_root_handler
-    // };
-    // httpd_register_uri_handler(server, &uri_post_config_main);
+    httpd_uri_t uri_get_screens_visible_amount = {
+        .uri        = "/api/screens/visible-amount",
+        .method     = HTTP_GET,
+        .handler    = uri_get_screens_visible_amount_handler
+    };
+    httpd_register_uri_handler(server, &uri_get_screens_visible_amount);
 
     httpd_uri_t uri_post_config_screen = {
         .uri        = "/api/screen",
@@ -263,6 +352,20 @@ static void start_web_server() {
         .handler    = uri_post_config_screen_handler
     };
     httpd_register_uri_handler(server, &uri_post_config_screen);
+
+    httpd_uri_t uri_post_config_screens = {
+        .uri        = "/api/screens",
+        .method     = HTTP_POST,
+        .handler    = uri_post_config_screens_handler
+    };
+    httpd_register_uri_handler(server, &uri_post_config_screens);
+
+    // httpd_uri_t uri_post_config_main = {
+    //     .uri        = "/config-main",
+    //     .method     = HTTP_POST,
+    //     .handler    = uri_get_root_handler
+    // };
+    // httpd_register_uri_handler(server, &uri_post_config_main);
 }
 
 /**

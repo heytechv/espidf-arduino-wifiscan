@@ -4,76 +4,314 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="UTF-8">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-    <script
-  src="https://code.jquery.com/jquery-3.6.1.min.js"
-  integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ="
-  crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
 </head>
 <body>
 
-    <div class="m">
-        <div class="t">PixelClock
-        </div>
-        <div id="list" >
+    <div class="main_container">
+        <div class="title">PixelClock</div>
+        <div id="list">
 
-            <!-- Screens start -->
-            <!-- <div class="i">
+            <!-- <div class="item">
+                <div class="handle"></div>
                 <div class="screen">
+                    <div class="x">&#215;</div>
                     <div class="info">
-                        <span class="n">Time</span>
-                        <span class="d">Shows current time and icon/animation.</span>
-                        <span ></span>
-
-                    </div>                    
+                        <div class="info_screen">Screen</div>
+                        <div class="info_desc">Opis ekranu co i jak.</div>
+                    </div>
+                    <div class="arrow">&#8594;</div>
                 </div>
             </div> -->
-            
-            <!-- Screens end -->
 
         </div>
-        <!-- <div style="position:absolute; bottom: 0; left:50%; transform: translate(-50%, -50%); margin: auto;"><input type='submit' value='Apply' class='apply'></input></div> -->
+        <div class="add" onclick="showDialogScreens()">
+            <div class="plus">+</div>
+        </div>
+
+        <div class="apply" onclick="applyScreens()">Apply</div>
     </div>
 
     <dialog id="dialog">
-        <form id="dform" >
 
-        </form>
     </dialog>
 
-    <script>
-        var screensJson = {
-            "Time": [
-                [
-                    1,              // fieldType [TEXT, GRAPHIC]
-                    "Graphics",     // fieldName
-                    "Choose graphic visible next to time."   // description
-                ],
-                [
-                    0,              // fieldType [TEXT, GRAPHIC]
-                    "Timezone",     // fieldName
-                    "Fill in timezone."   // description
-                ]
-            ],
-            "Weather": [
-                [
-                    1,              // fieldType [TEXT, GRAPHIC]
-                    "Graphics",     // fieldName
-                    "Choose graphic visible next to time."   // description
-                ],
-                [
-                    1,              // fieldType [TEXT, GRAPHIC]
-                    "Graphics2",     // fieldName
-                    "2Choose graphic visible next to time."   // description
-                ],
-                [
-                    0,              // fieldType [TEXT, GRAPHIC]
-                    "Timezone",     // fieldName
-                    "Fill in timezone."   // description
-                ]
-            ]
-        };
+    <style>
+        body { font-family: 'Roboto', sans-serif; }
 
-        var files = ["skull.anim", "skull_0.bmp", "skull_1.bmp"];
+        .main-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0px;
+        }
+        .title {
+            border-bottom: 1px solid #E8E7EA;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            padding: 24px;
+            font-size: 24px;
+        }
+        #list {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 12px 0px;
+            gap: 24px;
+            
+        }
+
+        .item {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            padding: 0px;
+            gap: 10px;
+
+            flex: none;
+            order: 0;
+            align-self: stretch;
+            flex-grow: 0;
+        }
+        .handle {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 0px;
+            gap: 4px;
+            content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='18' width='24'%3E%3Cpath style='stroke:%23d9d9d9;stroke-width:3' d='M0 3h24M0 9h24M0 15h24'/%3E%3C/svg%3E");
+            flex: none;
+            order: 0;
+            flex-grow: 0;
+        }
+        .screen {
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 12px;
+            gap: 6px;
+            background: #090909;
+            border: 2px solid #E8E7EA;
+            border-radius: 10px;
+            color: white;
+            flex: none;
+            order: 1;
+            flex-grow: 1;
+        }
+        .x {
+            color: #CE0000;
+            font-size: 28px;
+        }
+        .info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0px;
+            gap: 2px;
+        }
+        .info_screen {
+            font-size: 16px;
+        }
+        .info_desc {    
+            font-size: 12px;
+        }
+        .arrow {
+            font-size: 16px;
+            color: #FFFFFF;
+            flex: none;
+            order: 2;
+            flex-grow: 0;
+            transform: scale(1.75);
+            content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-arrow-right-short'%3E%3Cpath fill-rule='evenodd' d='M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z'/%3E%3C/svg%3E");
+            filter: invert(100%);
+        }
+
+        .add {
+            margin-top: 24px;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid #D9D9D9;
+            border-radius: 10px;
+            gap: 10px;
+            padding: 6px;
+        }
+        .plus {
+            color: #D9D9D9;
+            font-size: 28px;
+        }
+
+        /* Dialog */
+        dialog {
+            width: 100%;
+            margin-bottom: 0;
+            border: 2px solid #E8E7EA;
+            border-radius: 30px 30px 0 0;
+        }
+        #dialog_container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 24px;
+            padding: 12px;
+            background: #FFFFFF;
+            border-radius: 30px;
+        }
+        .dialog__title {
+            font-size: 20px;
+            color: #000000;
+        }
+        /* Dialog: Screen */
+        .dialogScreen__option {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0px;
+            gap: 12px;
+        }
+        .dialogScreen__header {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 0px;
+            gap: 2px;
+        }
+        .dialogScreen__val1 {
+            font-size: 16px;
+        }
+        .dialogScreen__val2 {
+            font-size: 12px;
+        }
+        .dialogScreen__input {
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            padding: 12px;
+            gap: 10px;
+            background: #D9D9D9;
+            border-radius: 30px;
+            flex: none;
+        }
+
+        /* Buttons */
+        .button_container {
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+
+            padding: 0px;
+            gap: 10px;
+        }
+        .button_cancel {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+
+            flex: 1;
+            flex-grow: 1;
+
+
+            padding: 12px 12px;
+            justify-content: center;
+            gap: 10px;
+            border: 2px solid #D64545;
+            border-radius: 30px;
+            color: #D64545;
+            font-size: 12px;
+            
+        }
+        .button_save {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+
+            flex: 1;
+            flex-grow: 1;
+
+            padding: 12px 12px;
+            gap: 10px;
+            background:#45D690;
+            border-radius: 30px;
+            font-size: 12px;
+            color: white;   
+        }
+
+        /* Button apply */
+        .apply {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            padding: 12px 50px;
+            gap: 10px;
+            background: #0C1617;
+            border-radius: 30px;
+            color: white;
+            font-size: 16px;
+            position: absolute;
+            bottom: 0;
+            left:50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Dialog: Screens */
+        .dialogScreens__list {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            gap: 12px;
+
+
+        }
+        .dialogScreens__screen {
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            padding: 18px 12px;
+            gap: 6px;
+            background: #090909;
+            border: 2px solid #E8E7EA;
+            border-radius: 10px;
+        }
+        .dialogScreens__info {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0px;
+            gap: 2px;
+            color: white;
+
+        }
+        .dialogScreens__val1 {
+            font-size: 16px;
+        }
+        .dialogScreens__val2 {
+            font-size: 12px;
+        }
+    </style>
+
+    <script>
+        var screenListAllJson = { };
+        var screenVisibleAmount = 0;
+        var files = [];
 
         function getGraphicFiles() {
             let list = [];
@@ -81,26 +319,11 @@
                 let filename = files[f];
                 if (filename.endsWith(".bmp") || filename.endsWith(".anim")) list.push(filename);
             }
+            list.sort();
             return list;
         }
 
-        window.onload = function() {
-            screensJson = getScreensJson();
-            files = getFiles();
-
-            let list = document.getElementById("list");
-
-            let html = "";
-            for (let screen in screensJson) {
-                html += "<div class='i' onclick='showInputDialog(\"" + screen + "\");'><div class='screen'><div class='info'><span class='n'>"+screen+"</span><span class='d'></span></div></div></div>";
-            }
-
-            list.innerHTML = html;
-            new Sortable(document.getElementById('list'));
-        };
-
-        
-        function getScreensJson() {
+        function api_getScreenListAllJson() {
             var xmlHttp = new XMLHttpRequest();
             xmlHttp.open( "GET", "/api/screens", false ); // false for synchronous request
             xmlHttp.send( null );
@@ -111,7 +334,18 @@
             return JSON.parse(resp);
         }
 
-        function getFiles() {
+        function api_getScreenVisibleAmount() {
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open( "GET", "/api/screens/visible-amount", false ); // false for synchronous request
+            xmlHttp.send( null );
+
+            var resp = xmlHttp.responseText;
+            console.log("Screen visible amount: "+resp);
+
+            return resp;
+        }
+
+        function api_getFiles() {
             var xmlHttp = new XMLHttpRequest();
             xmlHttp.open( "GET", "/api/files", false ); // false for synchronous request
             xmlHttp.send( null );
@@ -124,168 +358,228 @@
             return files;
         }
 
-
-
-
-        function showInputDialog(screenName) {
-            console.log(screensJson[screenName]);
-
-            let dform = document.getElementById("dform");
-            dform.replaceChildren();
-
-            let inputs = document.createElement('div');
-            inputs.setAttribute('id', 'dialog_cont');
-
-            let html = "";
-
-            html += "<input type='hidden' name='ScreenName' value='" + screenName + "'></input>";
-
-            for (let input in screensJson[screenName]) {
-
-                let type = screensJson[screenName][input][0];
-                let name = screensJson[screenName][input][1];
-                let desc = screensJson[screenName][input][2];
-
-                html += "<div class='n'>"+name+"</div>";
-                html += "<div class='d'>"+desc+"</div>";
-
-                if (type == 0) {
-                    html += "<input type='text' name='"+name+"' class='in' />";
-                } else if (type == 1) {
-                    let fileList = getGraphicFiles();
-
-                    html += "<select name='"+name+"' class='in'>";
-                    for (f in fileList) {
-                        let filename = fileList[f];
-                        html += "<option value='" + filename + "'>" + filename + "</option>";
-                    }
-                    html += "</select>";
-                }
-            }
-            html += "<br/><input type='button' value='Apply' onclick='sendScreenConfig()' class='apply'></input>";
-            inputs.innerHTML = html;
-            dform.appendChild(inputs);
-            dialog.showModal();
-        }
-
-        document.onclick = function(event) {
-            if (!event.target.contains(dialog)) return;
-            dialog.close();
-        }
-
-
-        function sendScreenConfig() {
-            dialog.close();
-            
-            var formData = $("#dform").serializeArray();
-            var resultJson = [];
-            for (let d in formData) {
-                let value = formData[d]['value'];
-                resultJson[d] = value;
-            }
-            console.log("Sending json:"+resultJson);
+        function api_updateScreen(config) {
+            console.log("Sending screen config: "+config);
             $.ajax({
                 type: "POST",
-                url: "http://192.168.1.107/api/screen",
-                data: JSON.stringify(resultJson),
+                url: "/api/screen",
+                data: JSON.stringify(config),
                 success: function(){},
                 dataType: "json",
                 contentType : "application/json"
             });
         }
 
+        function api_updateScreens(list) {
+            var json = JSON.stringify(list);
+            console.log("Updating screens: " + json);
+            $.ajax({
+                type: "POST",
+                url: "/api/screens",
+                data: json,
+                success: function(){},
+                dataType: "json",
+                contentType : "application/json"
+            });
+        }
+
+        // ================================================
+        // ==== OnLoad ====================================
+        // ================================================
+        window.onload = function() {
+            screenListAllJson = api_getScreenListAllJson();
+            screenVisibleAmount = api_getScreenVisibleAmount();
+            files = api_getFiles();
+
+            // Get list of visible screens
+            var screenList = [];
+            for (let i=0; i<screenVisibleAmount; i++) {
+                if (i >= Object.keys(screenListAllJson).length) break;
+                screenList.push(Object.keys(screenListAllJson)[i]);
+            }
+
+            // Draw elements
+            let html = "";
+            for (let i in screenList) {
+                let screen = screenList[i];
+                addScreenToList(screen);
+            }
+
+            // Add dragable
+            new Sortable(document.getElementById('list'));
+        };
+
+
+        // ---------------------------
+
+        function getChosenScreens() {
+            var list = document.getElementById("list");
+            var items = list.getElementsByClassName("item");
+
+            var screens = [];
+            for (let i=0; i<items.length; i++) {
+                var item = items[i];
+
+                var info_screen = item.querySelector("#info_screen");
+                var name = info_screen.innerText;
+                screens.push(name);
+            }
+
+            console.log(screens);
+            return screens;
+        }
+
+        function removeScreen(event) {
+            event.stopPropagation();
+
+            var item = event.target.closest("#item_this");
+            item.remove();
+            console.log(item);
+        }
+
+        function applyScreen() {
+            dialog.close();
+            
+            var formData = $("#dialog_container").serializeArray();
+            var resultJson = [];
+            for (let d in formData) {
+                let value = formData[d]['value'];
+                resultJson[d] = value;
+            }
+
+            api_updateScreen(resultJson);
+        }
+
+        function applyScreens() {
+            var screens = getChosenScreens();
+            api_updateScreens(screens);
+        }
+
+        function addScreenToList(screenName) {
+            let list = document.getElementById("list");
+
+            let html = "";
+            html += "<div id='item_this' class='item' onclick='showDialogScreen(\"" + screenName + "\");'>";
+                html += "<div class='handle'></div>";
+                html += "<div class='screen'>";
+                    html += "<div class='x' onclick='removeScreen(event);'>&#215;</div>";
+                    html += "<div class='info'>";
+                        html += "<div id='info_screen' class='info_screen'>" + screenName + "</div>";
+                        html += "<div class='info_desc'></div>";
+                    html += "</div>";
+                    html += "<div class='arrow'>&#8594;</div>";
+                html += "</div>";
+            html += "</div>";
+            list.innerHTML += html;
+
+            dialog.close();
+        }
+
+        // =======================
+        // ==== Dialog Screen ====
+        // =======================
+        function showDialogScreen(screenName) {
+            let dform = document.getElementById("dialog");
+            dform.replaceChildren();
+
+            let inputs = document.createElement('form');
+            inputs.setAttribute('id', 'dialog_container');
+
+            let html = "";
+            html += "<input type='hidden' name='ScreenName' value='" + screenName + "'></input>";  // hidden field with screen name (parsed in applyScreen() via serialization)
+            html += "<div class='dialog__title'>" + screenName + "</div>";
+            for (let input in screenListAllJson[screenName]) {
+
+                let type = screenListAllJson[screenName][input][0];
+                let name = screenListAllJson[screenName][input][1];
+                let desc = screenListAllJson[screenName][input][2];
+
+                html += "<div class='dialogScreen__option'>";
+                    html += "<div class='dialogScreen__header'>";
+                        html += "<div class='dialogScreen__val1'>" + name + "</div>";
+                        html += "<div class='dialogScreen__val2'>" + desc + "</div>";
+                    html += "</div>";
+
+                if (type == 0) {
+                    html += "<input type='text' name='"+name+"' class='dialogScreen__input' />";
+                } else {
+                    let fileList = getGraphicFiles();
+
+                    html += "<select name='"+name+"' class='dialogScreen__input'>";
+                    for (f in fileList) {
+                        let filename = fileList[f];
+                        html += "<option value='" + filename + "'>" + filename + "</option>";
+                    }
+                    html += "</select>";
+                }
+
+
+                html += "</div>";
+            }
+
+            html += "<div class='button_container'>";
+                html += "<div class='button_cancel' onclick='dialog.close();'>Cancel</div>";
+                html += "<div class='button_save' onclick='applyScreen()'>Save</div>";
+            html += "</div>";
+
+            inputs.innerHTML = html;
+            dform.appendChild(inputs);
+            dialog.showModal();
+        }
+
+        // ========================
+        // ==== Dialog Screens ====
+        // ========================
+        function showDialogScreens() {
+            var screensAlreadyChosen = getChosenScreens();
+
+            let dform = document.getElementById("dialog");
+            dform.replaceChildren();
+
+            let inputs = document.createElement('div');
+            inputs.setAttribute('id', 'dialog_container');
+
+            let addedAmount = 0;
+
+            let html = "";
+            html += "<div class='dialog__title'>All screens</div>";
+            html += "<div class='dialogScreens__list'>";
+            for (var screenName in screenListAllJson) {
+                if (screensAlreadyChosen.includes(screenName)) continue;
+
+                html += "<div class='dialogScreens__screen' onclick='addScreenToList(\"" + screenName + "\")'>";
+
+                    html += "<div class='dialogScreens__info'>";
+                        html += "<div class='dialogScreens__val1'>" + screenName + "</div>";
+                        html += "<div class='dialogScreens__val2'></div>";
+                    html += "</div>"
+                    html += "<div class='arrow'>&#8594;</div>";
+
+                html += "</div>";
+
+                addedAmount += 1;
+            }
+
+            if (addedAmount == 0) {
+                html += "No screens left";
+            }
+
+            html += "</div>";
+            inputs.innerHTML = html;
+            dform.appendChild(inputs);
+            dialog.showModal();
+        }
+
+        // ======================
+        // ==== Dialog close ====
+        // ======================
+        document.onclick = function(event) {
+            if (!event.target.contains(dialog)) return;
+            dialog.close();
+        }
+
+
     </script>
-
-
-    <style>
-
-        body { font-family: 'Roboto', sans-serif; }
-
-        .m { padding: 12px; }
-        .t { font-size: 24px; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 2px solid #E8E7EA;}
-        .n { font-size: 16px; }
-        .d { font-size: 12px; }
-
-        .i:before {
-            content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='18' width='24'%3E%3Cpath style='stroke:%23d9d9d9;stroke-width:3' d='M0 3h24M0 9h24M0 15h24'/%3E%3C/svg%3E");
-        }
-
-        .i {
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .screen {
-            width: 100%;
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
-            gap: 2px;
-
-            border: 2px solid #E8E7EA;
-            border-radius: 10px;
-            padding: 18px 12px;
-
-            margin-top: 12px;
-        }
-
-        .screen:after {
-            transform: scale(1.75);
-            content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-arrow-right-short'%3E%3Cpath fill-rule='evenodd' d='M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z'/%3E%3C/svg%3E");
-        }
-
-        .info {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 2px;
-        }
-        
-
-        dialog {
-            width: 88%;
-            margin-bottom: 2%;
-            border: 2px solid #E8E7EA;
-            border-radius: 10px;
-
-
-        }
-
-        #dialog_cont {
-            width: 90%;
-            margin: auto;
-            margin-top: 12px;
-        }
-
-        .in {
-            margin-top: 8px;
-            margin-bottom: 12px;
-            width: 100%;
-            padding: 12px 12px;
-            box-sizing: border-box;
-            background-color: #f1f1f1;
-            color: black;
-            border-radius: 30px;
-            border: none;
-        }
-
-        .apply {
-            width: 100%;
-            background: #0C1617;
-            border-radius: 30px;
-            padding: 6px 50px;
-            font-size: 18px;
-            color: #FFFFFF;
-            margin-top: 12px;
-        }
-
-
-    </style>
 
 </body>
 </html>

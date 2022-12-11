@@ -33,12 +33,12 @@ void Display::init() {
 
 }
 
-void Display::setCursor(uint8_t c) {
+void Display::setCursor(int16_t c) {
     display_cursor = c;
 }
 
 
-uint8_t Display::getCursor() {
+int16_t Display::getCursor() {
     return display_cursor;
 }
 
@@ -72,11 +72,44 @@ void Display::sendBuffer() {
 
     fillBuffer((uint32_t*)&leds, 256);
 	led_strip_update();
+}
 
+/**
+ * @brief Get width of char
+ */
+uint8_t Display::getWidth(char c) {
+    uint8_t bit_array[8], sign_width = 0;
 
+    for (uint8_t w = 0; w < 8; w++) {
+        decToBin8(font_8x8_default[c - 32][w], bit_array);     // Z danego wiersza (ze tablicy znakow) rozkodowuje kolumne hex na bin
+        
+        for (uint8_t k = 0; k < 8; k++) {
+            // Find the max width of the current sign
+            if (k > sign_width && bit_array[k] > 0) {
+                sign_width ++;
+            }
+        }
+    }
 
-    
+    // Setting cursor for future sign
+    // sign_width is now set at the end of the sign
+    // but we want to +2 (+1 we are at the position after sign, +2 we are at the position after sign + one column space)
+    sign_width += 2;
 
+    return sign_width;
+}
+
+/**
+ * @brief Get width of text
+ */
+uint8_t Display::getWidthText(char *text) {
+   uint8_t text_width = 0;
+
+    while (*text) {                                     // Until value pointed by var is not NULL
+        text_width += getWidth(*(text++));   // print single char, then increment pointer to next char value in array
+    }
+
+    return text_width;
 }
 
 /**
