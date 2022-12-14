@@ -50,9 +50,9 @@ static uint8_t graphics_anim_frame = 0;
 void ScreenTime::tick(Display *display, uint16_t ticks, std::vector<ConfigInput_t> conf) {
 
 
-    if (ticks % 3 == 0) {
-        ESP_LOGI(TAG, "%s = %s", conf.at(0).fieldName.c_str(), conf.at(0).value.c_str());
-    }
+    // if (ticks % 3 == 0) {
+    //     ESP_LOGI(TAG, "%s = %s", conf.at(0).fieldName.c_str(), conf.at(0).value.c_str());
+    // }
 
     // char time_buff[64];
 

@@ -39,6 +39,10 @@
     <style>
         body { font-family: 'Roboto', sans-serif; }
 
+        input {
+            box-sizing: border-box;
+        }
+
         .main-container {
             width: 100%;
             display: flex;
@@ -108,6 +112,7 @@
             font-size: 28px;
         }
         .info {
+            pointer-events: none;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -116,9 +121,11 @@
             gap: 2px;
         }
         .info_screen {
+            pointer-events: none;
             font-size: 16px;
         }
-        .info_desc {    
+        .info_desc {
+            pointer-events: none;
             font-size: 12px;
         }
         .arrow {
@@ -500,9 +507,13 @@
                         html += "<div class='dialogScreen__val2'>" + desc + "</div>";
                     html += "</div>";
 
-                if (type == 0) {
+                if (type == 0) {  // text
                     html += "<input type='text' name='"+name+"' class='dialogScreen__input' />";
-                } else {
+                } else if (type == 1) {  // float
+                    html += "<input type='number' step='0.0001' name='"+name+"' class='dialogScreen__input' />";
+                } else if (type == 2) {  // int
+                    html += "<input type='number' step='1' oninput='this.value=this.value.replace(/[^0-9\\-]/g,\"\");' name='"+name+"' class='dialogScreen__input' />";
+                } else {  // graphic
                     let fileList = getGraphicFiles();
 
                     html += "<select name='"+name+"' class='dialogScreen__input'>";

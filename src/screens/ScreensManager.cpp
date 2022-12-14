@@ -25,6 +25,8 @@
 
 #include "extra/ScreenTime.h"
 #include "extra/ScreenText.h"
+#include "extra/ScreenWeather.h"
+#include "extra/ScreenCrypto.h"
 
 
 static const char TAG[] = "ScreensManager";
@@ -36,7 +38,8 @@ typedef struct ScreenConfig_t {
 } ScreenConfig_t;
 
 std::vector<ScreenConfig_t> screenList;  // the list of visible screens
-int screenList_visible_amount = 4;       // how many screens are visible           
+int screenList_visible_amount = 4;       // how many screens are visible
+uint8_t screenList_cur_screen_index = 0;
 
 /* Ticks */
 uint16_t screens_manager_ticks = 0;
@@ -57,9 +60,17 @@ void screensManager_init() {
     ScreenTime *screenTime = new ScreenTime();
     screensManager_register_screen(screenTime);
 
-    /* Screen text*/
+    /* Screen: Text */
     ScreenText *screenText = new ScreenText();
     screensManager_register_screen(screenText);
+
+    /* Screen: Weather */
+    ScreenWeather *screenWeather = new ScreenWeather();
+    screensManager_register_screen(screenWeather);
+
+    /* Screen: Crypto */
+    ScreenCrypto *screenCrypto = new ScreenCrypto();
+    screensManager_register_screen(screenCrypto);
 }
 
 
@@ -111,11 +122,11 @@ void screensManager_task(void *argp) {
     Screens *sSTAFailed = new ScreenSTAFailed();
     Screens *sSTAConnected = new ScreenSTAConnected();
 
-    uint8_t wait_ticks = 0;
+    int8_t wait_ticks = 0;
+    uint8_t screen_change_delay = 100;
 
     /* Loop */
     bool is_init_done = false;
-    uint8_t cur_screen_index = 0;
 
     int8_t wifi_flag = 0;
     ButtonState btn_next_flag = IDLE;
@@ -126,7 +137,7 @@ void screensManager_task(void *argp) {
 
         /* Ticks counting */
         screens_manager_ticks ++;
-        if (screens_manager_ticks > 65000) screens_manager_ticks = 0;  // tick overflow
+        if (screens_manager_ticks > 30000) screens_manager_ticks = 0;  // tick overflow
 
         /* Receive queues */
         if (xQueueReceive(screens_manager_wifi_queue, &wifi_flag, (TickType_t)0)) { }
@@ -171,18 +182,23 @@ void screensManager_task(void *argp) {
             /* Button */
             if (btn_next_flag == SINGLE_CLICK) {
                 ESP_LOGI(TAG, "next screen");
-                cur_screen_index ++;
+                screenList_cur_screen_index ++;
             } else if (btn_next_flag == DOUBLE_CLICK || btn_next_flag == MULTI_CLICK) {
                 ESP_LOGI(TAG, "screen action");
             }
 
+            /* Automatically change */
+            if (screens_manager_ticks % screen_change_delay == 0) {
+                screenList_cur_screen_index ++;
+            }
+
             /* Overflow */
-            if (cur_screen_index >= screenList.size() || cur_screen_index >= screenList_visible_amount) {
-                cur_screen_index = 0;
+            if (screenList_cur_screen_index >= screenList.size() || screenList_cur_screen_index >= screenList_visible_amount) {
+                screenList_cur_screen_index = 0;
             }
 
             /* Tick selected screen */
-            sc = screenList.at(cur_screen_index);
+            sc = screenList.at(screenList_cur_screen_index);
             s = sc.screen;
         }
 
@@ -238,9 +254,9 @@ std::string screensManager_get_config_json_str() {
 
         /* Iterate over conf list of screen */
         for (int n=0; n<conf_size; n++) {
-            fieldName = sc->conf.at(n).fieldName;
+            fieldName = sc->conf.at(n).name;
 
-            fieldType = sc->conf.at(n).fieldType;
+            fieldType = sc->conf.at(n).type;
             title = sc->conf.at(n).title;
             description = sc->conf.at(n).description;
             value = sc->conf.at(n).value;
@@ -358,5 +374,22 @@ esp_err_t screensManager_set_screens(std::vector<std::string> screenNames) {
 
 int screensManager_get_screens_visible_amount() {
     return screenList_visible_amount;
+}
+
+esp_err_t screensManager_set_screen_visible(std::string name) {
+    ScreenConfig_t sc;
+    std::string screen_name;
+
+    for (int i=0; i<screenList_visible_amount; i++) {
+        sc = screenList.at(i);
+        screen_name = sc.screen->getName();
+
+        if (name == screen_name) {
+            screenList_cur_screen_index = i;
+            return ESP_OK;
+        }
+    }
+
+    return ESP_FAIL;
 }
 

@@ -38,6 +38,12 @@ const int32_t modeAP_root_html_len = 443;
 
 
 
+
+extern void setModeAP();
+
+extern void setModeSTA();
+
+
 extern double today_temperature;
 
 void rest_get();
@@ -56,6 +62,7 @@ enum {
     WIFI_AP_FAIL_FLAG,
     WIFI_AP_WEBSERVER_STARTING_FLAG,
     WIFI_AP_WEBSERVER_STARTED_FLAG,
+    WIFI_SKIP
     // WIFI_AP_CONFIGURED_STA_FLAG  // todo
 };
 

@@ -20,13 +20,23 @@ idf_component_register(SRCS
 "nvs/nvsutils.cpp"
 "nvs/nvsutils.h"
 
+"screens/Screens.h"
+"screens/ScreensManager.cpp"
+"screens/ScreensManager.h"
+
+"wifiprovisioning/WifiProvisioning.AP.cpp"
+"wifiprovisioning/WifiProvisioning.cpp"
+"wifiprovisioning/WifiProvisioning.h"
+"wifiprovisioning/WifiProvisioning.STA.cpp"
+"wifiprovisioning/WifiProvisioning.WifiManager.cpp"
+
+"wifiutils/wifiutils.cpp"
+"wifiutils/wifiutils.h"
 
 "screens/default/ScreenLoading.cpp"
 "screens/default/ScreenLoading.h"
-
 "screens/default/ScreenAPConfig.cpp"
 "screens/default/ScreenAPConfig.h"
-
 "screens/default/ScreenSTAConnecting.cpp"
 "screens/default/ScreenSTAConnecting.h"
 "screens/default/ScreenSTAFailed.cpp"
@@ -40,19 +50,12 @@ idf_component_register(SRCS
 "screens/extra/ScreenText.cpp"
 "screens/extra/ScreenText.h"
 
+"screens/extra/ScreenWeather.cpp"
+"screens/extra/ScreenWeather.h"
 
-"screens/Screens.h"
-"screens/ScreensManager.cpp"
-"screens/ScreensManager.h"
+"screens/extra/ScreenCrypto.cpp"
+"screens/extra/ScreenCrypto.h"
 
-"wifiprovisioning/WifiProvisioning.AP.cpp"
-"wifiprovisioning/WifiProvisioning.cpp"
-"wifiprovisioning/WifiProvisioning.h"
-"wifiprovisioning/WifiProvisioning.STA.cpp"
-"wifiprovisioning/WifiProvisioning.WifiManager.cpp"
-
-"wifiutils/wifiutils.cpp"
-"wifiutils/wifiutils.h"
 
 )
 

@@ -29,22 +29,37 @@ public:
 
     enum ConfigFieldType {
         TEXT=0,
+        FLOAT,
+        INT,
         GRAPHIC
     };
 
     typedef struct ConfigInput_t {
-        ConfigFieldType fieldType;
-        std::string fieldName;
+        ConfigFieldType type;
+        std::string name;
         std::string title;
         std::string description;
         std::string value;
+        bool isNew;
     } ConfigInput_t;
 
 
     virtual std::string getName() { return "default"; }
     virtual std::vector<ConfigInput_t> getDefaultConfig();
-
     virtual void tick(Display *display, uint16_t ticks, std::vector<ConfigInput_t> conf) { }
+
+
+    ConfigInput_t* getConfigByName(std::vector<ConfigInput_t> conf, std::string name) {
+        for (int i=0; i<conf.size(); i++) {
+            ConfigInput_t *c = &conf.at(0);
+
+            if (c->name == name) {
+                return c;
+            }
+        }
+        return NULL;
+    }
+
 
 
     void display_setCursor(Display *display, int16_t cursor) {
@@ -85,35 +100,35 @@ public:
         display->sendBuffer();
     }
 
-    void display_text(Display *display, std::string text, int16_t *cursor_scroll) {
+    int16_t cursor_scroll = 0;
+    void display_text(Display *display, std::string text) {
         uint8_t skip_scroll_amount = 12;  // todo do screen manager global config
 
         int8_t cursor_start = display_getCursor(display);
         uint8_t width = display_getTextWidth(display, text);
+        int16_t cursor_new = cursor_start;
 
         /* Scrolling only for too long text */
         if (width >= 32 - cursor_start) {  // todo display width here (32px)
-            int16_t cursor_new = cursor_start;
-
-            (*cursor_scroll) --;
+            cursor_scroll --;
 
             /* Let first word be longer (to make it easier to start reading for human) */
-            if (*cursor_scroll > -skip_scroll_amount) {
+            if (cursor_scroll > -skip_scroll_amount) {
                 cursor_new = cursor_start;
 
             /* After first word displayed for longer time, start scrolling */
             } else {
-                cursor_new = *cursor_scroll + skip_scroll_amount + cursor_start;
+                cursor_new = cursor_scroll + skip_scroll_amount + cursor_start;
             }
+        }
 
-            /* Display */
-            display_setCursor(display, cursor_new);
-            display_print(display, text);
+        /* Display */
+        display_setCursor(display, cursor_new);
+        display_print(display, text);
 
-            /* Reset if scrolled everything */
-            if (*cursor_scroll < -width - cursor_start - skip_scroll_amount) {
-                *cursor_scroll = 0;
-            }
+        /* Reset if scrolled everything */
+        if (cursor_scroll < -width - cursor_start - skip_scroll_amount) {
+            cursor_scroll = 0;
         }
 
     }
@@ -170,7 +185,7 @@ public:
             (*anim_frame) ++;
         }
         // Overflow
-        if (*anim_frame >= 255) {
+        if (*anim_frame >= 250) {
             *anim_frame = 0;
         }
 

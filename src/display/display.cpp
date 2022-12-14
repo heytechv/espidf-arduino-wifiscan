@@ -209,7 +209,7 @@ void Display::display_bmp(uint8_t graphics[192], uint8_t mirror_y) {
         for (uint8_t k=0; k<24; k+=3) {
 
             if (mirror_y) buff_index = font_to_buff_decode[w][k/3 + display_cursor];
-            else          buff_index = font_to_buff_decode[w][8-k/3 + display_cursor];
+            else          buff_index = font_to_buff_decode[w][7-k/3 + display_cursor];
 
             display_buffer[buff_index  ] = graphics[191-(w*24+k   )] * (float)(display_brightess/255.0f);
             display_buffer[buff_index+1] = graphics[191-(w*24+k +1)] * (float)(display_brightess/255.0f);

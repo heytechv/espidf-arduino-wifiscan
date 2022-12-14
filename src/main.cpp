@@ -28,6 +28,9 @@
 
 #include "esp_sntp.h"
 
+#include <time.h>
+#include <sys/time.h>
+
 #include "esp_spiffs.h"
 
 #include "screens/ScreensManager.h"
@@ -171,7 +174,7 @@ static esp_err_t uri_get_files_handler(httpd_req_t *req) {
         res = httpd_resp_sendstr_chunk(req, de->d_name);
         res = httpd_resp_sendstr_chunk(req, sem.c_str());
         
-        printf("Found file: %s\n", de->d_name);
+        // printf("Found file: %s\n", de->d_name);
     }
 
     closedir(dir);
@@ -243,6 +246,8 @@ static esp_err_t uri_post_config_screen_handler(httpd_req_t *req) {
     if (err == ESP_OK) httpd_resp_sendstr(req, "OK");
     else httpd_resp_sendstr(req, "Failed");
 
+    cJSON_Delete(root);
+
     return ESP_OK;
 }
 
@@ -300,6 +305,8 @@ static esp_err_t uri_post_config_screens_handler(httpd_req_t *req) {
 
     if (err == ESP_OK) httpd_resp_sendstr(req, "OK");
     else httpd_resp_sendstr(req, "Failed");
+
+    cJSON_Delete(root);
 
     return ESP_OK;
 }
@@ -360,12 +367,6 @@ static void start_web_server() {
     };
     httpd_register_uri_handler(server, &uri_post_config_screens);
 
-    // httpd_uri_t uri_post_config_main = {
-    //     .uri        = "/config-main",
-    //     .method     = HTTP_POST,
-    //     .handler    = uri_get_root_handler
-    // };
-    // httpd_register_uri_handler(server, &uri_post_config_main);
 }
 
 /**
@@ -387,8 +388,27 @@ static void onWifiEvent(uint8_t flag) {
  * onButtonNextClick
  */
 static void onButtonNextClick(ButtonState &buttonState) {
-    ESP_LOGI(TAG, "Button_Event: %d", buttonState);
+    ESP_LOGI(TAG, "Button_Event NEXT: %d", buttonState);
     xQueueSend(screens_manager_btn_queue, (uint8_t*) &buttonState, (TickType_t)0);
+}
+
+/**
+ * onButtonModeClick
+ */
+static void onButtonModeClick(ButtonState &buttonState) {
+    ESP_LOGI(TAG, "Button_Event MODE: %d", buttonState);
+    
+    if (buttonState == SINGLE_CLICK) {
+        ESP_LOGI(TAG, "Button_Event MODE = STA");
+        setModeSTA();
+        esp_restart();
+
+    } else if (buttonState == DOUBLE_CLICK) {
+        ESP_LOGI(TAG, "Button_Event MODE = AP");
+        setModeAP();
+        esp_restart();
+    }
+    
 }
 
 /**
@@ -462,6 +482,11 @@ extern "C" void app_main() {
     btnNext.setOnClickListener(onButtonNextClick);
     btnNext.begin(25);
 
+    /* Button mode */
+    EasyButton btnMode;
+    btnMode.setOnClickListener(onButtonModeClick);
+    btnMode.begin(GPIO_NUM_32);
+
     /* Init wifi provisioning */
     WifiProvisioning WifiProvisioningImpl;
     WifiProvisioningImpl.begin(&onWifiEvent);
@@ -475,6 +500,7 @@ extern "C" void app_main() {
     /* While true */
     while (1) {
         btnNext.loop();
+        btnMode.loop();
         vTaskDelay(20 / portTICK_PERIOD_MS);
     }
 

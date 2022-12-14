@@ -29,20 +29,41 @@
 </head>
 <body>
 
-    <div class="m">
+    <div class="main-container" id="screen1">
         <div class="t">Wifi Settings</div>
 
         <div class="frame">
-            Wypełnij uwierzytelnienie do sieci, a następnie zrestartuj.
+            Fill in network credentials to store them and restart device into STA mode.
         </div><br/>
 
         <form method='post' action='/'>
-            <input class='in' type='text' name='ssid' placeholder='SSID'/><br/>
-            <input class='in' type='text' name='pass' placeholder='Password'/><br/>
+            <input class='in' type='text' name='ssid' placeholder='SSID' required/><br/>
+            <input class='in' type='text' name='pass' placeholder='Password' required/><br/>
             <input type='hidden' name='rob' placeholder='xd21'/><br/>
             <input class='apply' type='submit' value='Save'/>
         </form>
 
+        <button class='apply' onclick="onSkip()">Skip</button>
+    </div>
+
+    <div class="main-container hidden" id="screen2">
+        <div class="t">Time setup</div>
+
+        <div class="frame">
+            Pomiń konfigurację WiFi i ustaw bieżący czas, aby uzyskać dostęp do okrojonej funkcjonalności.
+        </div><br/>
+
+        <div>
+            <input class='in' type="time" id="time-set" name="time" required>
+            <form method='post' action='/api/time' id="formTime">
+                <input type="hidden" name="timeInSeconds" value="10000" id="timeInSeconds" />
+                <input type="hidden" name="rob" value="rob" />
+            </form>
+            <button class='apply' onclick="onTime()">Save</button>
+        </div>
+        
+
+        <button class='apply' onclick="onBack()">Back</button>
     </div>
 
 
@@ -50,10 +71,14 @@
 
         body { font-family: 'Roboto', sans-serif; }
 
-        .m { padding: 12px; }
+        .main-container { padding: 12px; }
         .t { font-size: 24px; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 2px solid #E8E7EA;}
         .n { font-size: 16px; }
         .d { font-size: 12px; }
+
+        form {
+            width: 100%;
+        }
 
         .in {
             margin-top: 8px;
@@ -71,7 +96,7 @@
             width: 100%;
             background: #0C1617;
             border-radius: 30px;
-            padding: 6px 50px;
+            padding: 6px 10px;
             font-size: 18px;
             color: #FFFFFF;
             margin-top: 12px;
@@ -86,8 +111,81 @@
             padding: 24px   
         }
 
+        /* #screen1 {
+            display: block;
+        }
+
+        #screen2 {
+            display: none;
+        } */
+
+        .visible {
+            opacity: 1;
+            display: block;
+        }
+
+        .hidden {
+            opacity: 0;
+            transition: opacity 2s linear; 
+            display: none;
+        }
 
     </style>
+
+    <script>
+
+        function onSkip() {
+            var screen1 = document.getElementById("screen1");
+            var screen2 = document.getElementById("screen2");
+
+            screen1.classList.remove("visible");
+            screen1.classList.add("hidden");
+            
+            screen2.classList.remove("hidden");
+            screen2.classList.add("visible");
+        }
+
+        function onBack() {
+            var screen1 = document.getElementById("screen1");
+            var screen2 = document.getElementById("screen2");
+
+            screen1.classList.remove("hidden");
+            screen1.classList.add("visible");
+
+            screen2.classList.remove("visible");
+            screen2.classList.add("hidden");
+        }
+
+        function onTime() {
+            var timeSet = document.getElementById("time-set");
+            var timeSetValue = timeSet.value;
+
+            var hours = timeSetValue.split(':')[0];
+            var min = timeSetValue.split(':')[1];
+
+            if (!hours || !min) {
+                console.log("Error while setting time!");
+                return
+            }
+
+            const date = new Date();
+            date.setHours(hours);
+            date.setMinutes(min);
+
+            var secondsSinceEpoch = Math.round(date / 1000);
+
+            console.log("Setting date in seconds: " + secondsSinceEpoch + ")");
+
+            // Send using hidden form
+            var formTime = document.getElementById("formTime");
+            var timeInSeconds = document.getElementById("timeInSeconds");
+            timeInSeconds.value = secondsSinceEpoch;
+
+            formTime.submit();
+            
+        }
+
+    </script>
 
 </body>
 </html>

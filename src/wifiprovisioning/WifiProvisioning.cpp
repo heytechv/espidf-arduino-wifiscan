@@ -29,6 +29,8 @@
 static const char TAG[] = "wifiprovisioning";
 
 
+RTC_NOINIT_ATTR int MODE = 1;  // 0 = AP, 1 = STA
+
 void WifiProvisioning::saveWifiInfoToNVS(WifiInfo_t *wifiInfo) {
     NVSUtils nvswifi(NVS_WIFI_NAMESPACE);
 
@@ -98,10 +100,11 @@ void WifiProvisioning::begin(void (*callback)(uint8_t flag)) {
     // gpio_set_direction(RESET_GPIO, GPIO_MODE_INPUT);
     // gpio_set_pull_mode(RESET_GPIO, GPIO_PULLDOWN_ONLY);
 
-    gpio_pad_select_gpio(RESET_GPIO);
-    gpio_set_direction  ((gpio_num_t) RESET_GPIO, GPIO_MODE_INPUT);
-    gpio_pulldown_en    ((gpio_num_t) RESET_GPIO);
-    gpio_pullup_dis     ((gpio_num_t) RESET_GPIO);
+    // to \/
+    // gpio_pad_select_gpio(RESET_GPIO);
+    // gpio_set_direction  ((gpio_num_t) RESET_GPIO, GPIO_MODE_INPUT);
+    // gpio_pulldown_en    ((gpio_num_t) RESET_GPIO);
+    // gpio_pullup_dis     ((gpio_num_t) RESET_GPIO);
 
     // Wifi info
     WifiInfo_t wifiInfo;
@@ -109,7 +112,7 @@ void WifiProvisioning::begin(void (*callback)(uint8_t flag)) {
 
     // Check whether reset gpio pressed or WifiInfo not saved in NVS storage
     // if (gpio_get_level(RESET_GPIO) == 1 || wifi_read_res != ESP_OK) {
-    if (gpio_get_level(RESET_GPIO) == 1) {
+    if (MODE == 0) {
 
         // start access point and server, then save input data as new WifiInfo
         ESP_LOGI(TAG, "(begin) Mode = AP");
@@ -125,3 +128,15 @@ void WifiProvisioning::begin(void (*callback)(uint8_t flag)) {
         modeSTA(wifiInfo);
     }
 }
+
+
+
+
+void setModeAP() {
+    MODE = 0;
+}
+
+void setModeSTA() {
+    MODE = 1;
+}
+
