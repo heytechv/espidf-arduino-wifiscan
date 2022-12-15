@@ -38,7 +38,7 @@ typedef struct ScreenConfig_t {
 } ScreenConfig_t;
 
 std::vector<ScreenConfig_t> screenList;  // the list of visible screens
-int screenList_visible_amount = 4;       // how many screens are visible
+int screenList_visible_amount = 2;       // how many screens are visible
 uint8_t screenList_cur_screen_index = 0;
 
 /* Ticks */
@@ -96,7 +96,7 @@ void screensManager_start() {
     /* Init display */
     screens_manager_display = new Display();
     screens_manager_display->init();
-    screens_manager_display->setBrightness(5);
+    screens_manager_display->setBrightness(15);
 
     /* Init screens */
     screensManager_init();
@@ -164,7 +164,7 @@ void screensManager_task(void *argp) {
             } else if (wifi_flag == WIFI_STA_CONNECTED_FLAG) {
                 // Show connection success screen for 15 seconds and continue with wifi
                 s = sSTAConnected;
-                wait_ticks = 10;
+                wait_ticks = 60;
                 is_init_done = true;
             }
         }

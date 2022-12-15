@@ -92,11 +92,13 @@ static esp_err_t uri_post_root_handler(httpd_req_t *req) {
     WifiProvisioning::saveWifiInfoToNVS(&wifiInfo);
 
     /* Send a response */
-    const char resp[] = "OK. Restarting...";
+    const char resp[] = "<h1 style='position: absolute;top: 50%;left: 50%;transform: translateX(-50%) translateY(-50%);'>OK. Restarting...</h1>";
     httpd_resp_send(req, resp, strlen(resp));
 
     /* Restart */
     vTaskDelay(100 / portTICK_PERIOD_MS);
+
+    setModeSTA();
     esp_restart();
 
     return ESP_OK;
@@ -142,11 +144,13 @@ static esp_err_t uri_post_time_handler(httpd_req_t *req) {
     settimeofday(&tv, NULL);
 
     /* Send a response */
-    const char resp[] = "OK. Restarting...";
+    const char resp[] = "<h1 style='position: absolute;top: 50%;left: 50%;transform: translateX(-50%) translateY(-50%);'>OK. Restarting...</h1>";
     httpd_resp_send(req, resp, strlen(resp));
 
     /* Restart */
     vTaskDelay(100 / portTICK_PERIOD_MS);
+
+    setModeSTA();
     esp_restart();
 
     return ESP_OK;

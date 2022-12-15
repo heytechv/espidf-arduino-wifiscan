@@ -26,6 +26,7 @@ enum ButtonState {
 
 class EasyButton {
 private:
+
     typedef void (*OnClickCallbackFunction)(ButtonState &);
     OnClickCallbackFunction listener = NULL;
 

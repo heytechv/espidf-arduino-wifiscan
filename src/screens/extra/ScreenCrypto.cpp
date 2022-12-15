@@ -127,7 +127,7 @@ void ScreenCrypto::tick(Display *display, uint16_t ticks, std::vector<ConfigInpu
 
     /* Display graphic */
     display_setCursor(display, 0);
-    helper_display_graphics(display, "tick.bmp", ticks, 4, &graphic_anim);
+    helper_display_graphics(display, "stock.bmp", ticks, 4, &graphic_anim);
 
     /* Send buffer */
     display_sendBuffer(display);

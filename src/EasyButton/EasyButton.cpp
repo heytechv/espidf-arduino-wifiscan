@@ -20,8 +20,8 @@ static void IRAM_ATTR gpio_interrupt_handler(void *args) {
 void EasyButton::begin(uint8_t pin) {
     gpio_pad_select_gpio(pin);
     gpio_set_direction  ((gpio_num_t) pin, GPIO_MODE_INPUT);
-    gpio_pulldown_en    ((gpio_num_t) pin);
-    gpio_pullup_dis     ((gpio_num_t) pin);
+    gpio_pullup_en      ((gpio_num_t) pin);
+    gpio_pulldown_dis   ((gpio_num_t) pin);
     PIN = pin;
 
     // Loop instead of interrupt, so kicked this out

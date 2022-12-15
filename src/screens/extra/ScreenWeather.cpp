@@ -93,18 +93,29 @@ std::vector<Screens::ConfigInput_t> ScreenWeather::getDefaultConfig() {
     return conf;
 }
 
+
+static std::string lat = "50.28";
+static std::string lon = "18.81";
+static bool isPlaceChanged = true;
+
 static int16_t scroll_cursor = 0;
 static uint8_t graphic_anim = 0;
 void ScreenWeather::tick(Display *display, uint16_t ticks, std::vector<ConfigInput_t> conf) {
 
+    std::string lat_rob = conf.at(0).value;
+    std::string lon_rob = conf.at(1).value;
+
+    if (lat != lat_rob) {
+        isPlaceChanged = true;
+        lat = lat_rob;
+        lon = lon_rob;
+        ESP_LOGI(TAG, "Place changed. Updating...");
+    }
+
     /* Get weather on start and every 1 hour */
-    if (ticks % 36000 == 0 || weather_code == -1) {
-
+    if (ticks % 36000 == 0 || weather_code == -1 || isPlaceChanged) {
+        isPlaceChanged = false;
         weather_code = -2;  // zeby na pewno nie spamic
-
-        std::string lat = conf.at(0).value;
-        std::string lon = conf.at(1).value;
-
         get_weather(lat, lon);
     }
 
